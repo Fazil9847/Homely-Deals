@@ -174,13 +174,19 @@ function ProductDetailStandard() {
   const availabilityLabel = product.availability || "Available on enquiry";
   const enquiryMessage = [
     "Hi,",
-    "",
-    "I'm interested in this product:",
+    "Product enquiry",
+    "--------------------",
+    "Details:",
     `Name: ${product.name}`,
     `Price: ${formatPrice(finalPrice)}`,
     originalPrice ? `Original Price: ${formatPrice(originalPrice)}` : null,
-    `Wood Type: ${woodTypeLabel}`,
-    `Link: ${window.location.origin}/product/${product._id}`,
+    "--------------------",
+    "Links:",
+    "Image:",
+    selectedImage || product.image,
+    "--------------------",
+    "Product Link:",
+    `${window.location.origin}/product/${product._id}`,
   ]
     .filter(Boolean)
     .join("\n");

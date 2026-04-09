@@ -9,6 +9,10 @@ const getSettings = async (req, res) => {
       shopName: "HOMLY DEALS",
       phone: "",
       location: "",
+      mapLink: "",
+      instagram: "",
+      facebook: "",
+      otherLink: "",
     });
   }
 
@@ -25,6 +29,10 @@ const updateSettings = async (req, res) => {
     settings.shopName = req.body.shopName;
     settings.phone = req.body.phone;
     settings.location = req.body.location;
+    settings.mapLink = req.body.mapLink;
+    settings.instagram = req.body.instagram;
+    settings.facebook = req.body.facebook;
+    settings.otherLink = req.body.otherLink;
   }
 
   await settings.save();

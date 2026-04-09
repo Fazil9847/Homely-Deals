@@ -23,13 +23,20 @@ function Header({
   onSuggestionSelect,
   onProductsClick,
   onContactClick,
-}) {
+  wishlistCount,
+  onWishlistClick,
+   cartCount,       
+  onCartClick   
+})  {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const searchInputRef = useRef(null);
   const searchAreaRef = useRef(null);
+  const lastScrollYRef = useRef(0);
 
   const showSuggestions =
     isSearchFocused && searchQuery.trim() && searchSuggestions.length > 0;
@@ -51,8 +58,40 @@ function Header({
     }
   }, [isSearchOpen]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      setIsScrolled(currentScrollY > 24);
+
+      if (currentScrollY <= 24) {
+        setIsHeaderVisible(true);
+      } else if (currentScrollY < lastScrollYRef.current) {
+        setIsHeaderVisible(true);
+      } else if (currentScrollY > lastScrollYRef.current + 8) {
+        setIsHeaderVisible(false);
+        setIsFilterMenuOpen(false);
+        setIsNavMenuOpen(false);
+      }
+
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  
   return (
-    <header className="mb-6 rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
+    <header
+      className={`fixed left-1/2 top-4 z-40 w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 border border-white/70 bg-white/90 backdrop-blur transition-all duration-300 ${
+        isScrolled
+          ? "rounded-2xl px-4 py-3 shadow-[0_14px_38px_rgba(15,23,42,0.14)]"
+          : "rounded-3xl px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.16)]"
+      } ${isHeaderVisible ? "translate-y-0 opacity-100" : "-translate-y-24 opacity-0"}`}
+    >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
           <img src={logo} alt="logo" className="h-14 w-14 object-contain" />
@@ -216,6 +255,28 @@ function Header({
                 >
                   Products
                 </button>
+
+                               <button
+  type="button"
+  onMouseDown={() => {
+    onWishlistClick();
+    setIsNavMenuOpen(false);
+  }}
+ className={`block w-full px-4 py-3 text-left text-sm transition hover:bg-gray-50 ${
+  wishlistCount > 0 ? "text-red-500 font-medium" : "text-gray-700"
+}`}
+>
+  ❤️ Wishlist ({wishlistCount})
+</button>
+<button
+  onMouseDown={() => {
+    onCartClick();
+    setIsNavMenuOpen(false);
+  }}
+  className="block w-full px-4 py-3 text-left text-sm hover:bg-gray-50"
+>
+  🛒 Cart {cartCount > 0 && `(${cartCount})`}
+</button>
                 <button
                   type="button"
                   onMouseDown={() => {
@@ -226,6 +287,8 @@ function Header({
                 >
                   Contact
                 </button>
+
+ 
 
                 {isLoggedIn ? (
                   <button

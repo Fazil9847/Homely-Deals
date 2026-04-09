@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { updateSettings, getSettings } from "../services/settingsService";
 
-function SettingsForm() {
+function SettingsForm({ onUpdate }) {
   const [form, setForm] = useState({
     shopName: "",
     phone: "",
     location: "",
+    mapLink: "",
+    instagram: "",
+    facebook: "",
+    otherLink: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -19,6 +23,10 @@ function SettingsForm() {
             shopName: data.shopName || "",
             phone: data.phone || "",
             location: data.location || "",
+            mapLink: data.mapLink || "",
+            instagram: data.instagram || "",
+            facebook: data.facebook || "",
+            otherLink: data.otherLink || "",
           });
         }
       } catch (error) {
@@ -39,6 +47,7 @@ function SettingsForm() {
       setLoading(true);
 
       await updateSettings(form);
+      onUpdate?.();
 
       alert("Settings updated");
     } catch (error) {
@@ -48,15 +57,15 @@ function SettingsForm() {
     }
   };
   return (
-    <form className="bg-white p-4 rounded shadow mb-6" onSubmit={handleSubmit}>
-      <h2 className="text-lg font-semibold mb-3">Shop Settings</h2>
+    <form className="mb-6 rounded-2xl bg-white p-5 shadow" onSubmit={handleSubmit}>
+      <h2 className="mb-4 text-lg font-semibold">Shop Settings</h2>
 
       <input
         name="shopName"
         value={form.shopName}
         onChange={handleChange}
         placeholder="Shop Name"
-        className="border p-2 rounded w-full mb-2"
+        className="mb-3 w-full rounded border p-2"
       />
 
       <input
@@ -64,19 +73,51 @@ function SettingsForm() {
         value={form.phone}
         onChange={handleChange}
         placeholder="Phone (with country code)"
-        className="border p-2 rounded w-full mb-2"
+        className="mb-3 w-full rounded border p-2"
       />
 
       <input
         name="location"
         value={form.location}
         onChange={handleChange}
-        placeholder="Location"
-        className="border p-2 rounded w-full mb-2"
+        placeholder="Location / Address"
+        className="mb-3 w-full rounded border p-2"
+      />
+
+      <input
+        name="mapLink"
+        value={form.mapLink}
+        onChange={handleChange}
+        placeholder="Google Maps Link"
+        className="mb-3 w-full rounded border p-2"
+      />
+
+      <input
+        name="instagram"
+        value={form.instagram}
+        onChange={handleChange}
+        placeholder="Instagram Link"
+        className="mb-3 w-full rounded border p-2"
+      />
+
+      <input
+        name="facebook"
+        value={form.facebook}
+        onChange={handleChange}
+        placeholder="Facebook Link"
+        className="mb-3 w-full rounded border p-2"
+      />
+
+      <input
+        name="otherLink"
+        value={form.otherLink}
+        onChange={handleChange}
+        placeholder="Other Link"
+        className="mb-4 w-full rounded border p-2"
       />
 
       <button
-        className="bg-black text-white px-4 py-2 rounded w-full"
+        className="w-full rounded bg-black px-4 py-2 text-white"
         disabled={loading}
       >
         {loading ? "Saving..." : "Save Settings"}

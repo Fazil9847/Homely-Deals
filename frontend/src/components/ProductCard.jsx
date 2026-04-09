@@ -69,8 +69,15 @@ function ProductCard({
   phoneNumber,
   searchQuery = "",
   searchType = "all",
+  wishlist,
+  toggleWishlist,
+  addToCart  
+  
 }) {
   const [now, setNow] = useState(() => Date.now());
+  const [isWide, setIsWide] = useState(false);
+  const navigate = useNavigate();
+
   const offerExpiryTime = product.offer?.expiresAt
     ? new Date(product.offer.expiresAt).getTime()
     : null;
@@ -85,36 +92,34 @@ function ProductCard({
   const finalPrice = shouldShowOffer ? product.offer.offerPrice : product.price;
   const woodTypeLabel = formatWoodTypes(product.woodType);
   const searchMatch = getSearchMatch(product, searchQuery, searchType);
+  const isLiked = wishlist?.some((p) => p._id === product._id) || false;
 
-  const message = `
-Hi,
-
-I'm interested in this product:
-
-- Name: ${product.name}
-- Price: ₹${finalPrice}
-${shouldShowOffer ? `- Original Price: Rs.${product.offer.originalPrice}` : ""}
-- Wood Type: ${woodTypeLabel}
-
-Image: ${product.image}
-
-Link:
-${window.location.origin}/product/${product._id}
-`;
-  const [isWide, setIsWide] = useState(false);
+  const message = [
+    "Hi,",
+    "Product enquiry",
+    "--------------------",
+    "Details:",
+    `Name: ${product.name}`,
+    `Price: Rs.${finalPrice}`,
+    shouldShowOffer ? `Original Price: Rs.${product.offer.originalPrice}` : null,
+    "--------------------",
+    "Links:",
+    `Image:`,
+    product.image,
+    "--------------------",
+    `Product Link:`,
+    `${window.location.origin}/product/${product._id}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-  const navigate = useNavigate();
 
   useEffect(() => {
     const img = new Image();
     img.src = product.image;
 
     img.onload = () => {
-      if (img.width > img.height) {
-        setIsWide(true); // landscape
-      } else {
-        setIsWide(false); // portrait
-      }
+      setIsWide(img.width > img.height);
     };
   }, [product.image]);
 
@@ -130,77 +135,85 @@ ${window.location.origin}/product/${product._id}
     return () => window.clearInterval(interval);
   }, [product.offer?.expiresAt]);
 
+  const discountPercent = shouldShowOffer
+    ? Math.round(
+        ((product.offer.originalPrice - product.offer.offerPrice) /
+          product.offer.originalPrice) *
+          100,
+      )
+    : 0;
+
+  const labelClassName =
+    product.label === "Offer"
+      ? "bg-red-500"
+      : product.label === "New"
+        ? "bg-green-500"
+        : product.label === "Best Seller"
+          ? "bg-blue-500"
+          : "bg-yellow-500 text-black";
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition duration-300 group">
-      {/* IMAGE */}
+    <div className="group overflow-hidden rounded-2xl bg-white shadow-md transition duration-300 hover:shadow-xl">
       <div
         onClick={() => navigate(`/product/${product._id}`)}
-        className="relative overflow-hidden"
+        className="relative cursor-pointer overflow-hidden"
       >
-        <div
-          className={`w-full overflow-hidden bg-gray-100
-      ${isWide ? "aspect-[16/9]" : "aspect-[4/5]"}`}
-        >
-          {shouldShowOffer && (
-            <span className="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded shadow">
-              {Math.round(
-                ((product.offer.originalPrice - product.offer.offerPrice) /
-                  product.offer.originalPrice) *
-                  100,
-              )}
-              % OFF
-            </span>
-          )}
+        <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap gap-2">
+            {shouldShowLabel && (
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-medium text-white shadow-sm ${labelClassName}`}
+              >
+                {product.label}
+              </span>
+            )}
+          </div>
 
+          <div className="flex flex-col items-end gap-2">
+            {shouldShowOffer && (
+              <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                {discountPercent}% OFF
+              </span>
+            )}
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleWishlist(product);
+              }}
+              className={`pointer-events-auto flex h-10 min-w-10 items-center justify-center rounded-full px-3 shadow-md transition ${
+                isLiked ? "bg-red-500 text-white" : "bg-white/90 text-gray-900"
+              }`}
+              aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
+            >
+              {isLiked ? "\u2665" : "\u2661"}
+            </button>
+          </div>
+        </div>
+
+        <div
+          className={`w-full overflow-hidden bg-gray-100 ${
+            isWide ? "aspect-[16/9]" : "aspect-[4/5]"
+          }`}
+        >
           <img
             src={product.image}
             alt={product.name}
-            className={`w-full h-full object-cover
-    ${product.imagePosition === "top" ? "object-top" : "object-center"}
-    group-hover:scale-105 transition duration-300`}
+            className={`h-full w-full object-cover transition duration-300 group-hover:scale-105 ${
+              product.imagePosition === "top" ? "object-top" : "object-center"
+            }`}
           />
-
-          {shouldShowOffer &&
-            (product.offer?.offerText || (
-              <>
-                {Math.round(
-                  ((product.offer.originalPrice - product.offer.offerPrice) /
-                    product.offer.originalPrice) *
-                    100,
-                )}
-                % OFF
-              </>
-            ))}
         </div>
-        {shouldShowLabel && (
-          <span
-            className={`absolute top-3 left-3 text-xs px-3 py-1 rounded-full text-white
-      ${
-        product.label === "Offer"
-          ? "bg-red-500"
-          : product.label === "New"
-            ? "bg-green-500"
-            : product.label === "Best Seller"
-              ? "bg-blue-500"
-              : "bg-yellow-500 text-black"
-      }`}
-          >
-            {product.label}
-          </span>
-        )}
       </div>
 
-      {/* CONTENT */}
       <div className="p-4">
-        {/* TITLE */}
         <h3 className="text-lg font-semibold text-gray-800">
           {searchMatch?.label === "Product"
             ? highlightText(product.name, searchQuery)
             : product.name}
         </h3>
 
-        {/* DESCRIPTION */}
-        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+        <p className="mt-1 line-clamp-2 text-sm text-gray-500">
           {product.description}
         </p>
 
@@ -211,47 +224,55 @@ ${window.location.origin}/product/${product._id}
           </p>
         )}
 
-        {/* WOOD TYPE */}
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="mt-2 text-xs text-gray-400">
           Wood:{" "}
           {searchMatch?.label === "Wood Type"
             ? highlightText(searchMatch.value, searchQuery)
             : woodTypeLabel}
         </p>
 
-        {/* PRICE */}
+        {shouldShowOffer && product.offer?.offerText && (
+          <p className="mt-2 text-xs font-medium text-red-500">
+            {product.offer.offerText}
+          </p>
+        )}
+
         <div className="mt-2">
           {shouldShowOffer ? (
             <div>
-              {/* OFFER PRICE */}
               <p className="text-xl font-bold text-green-600">
-                ₹{product.offer.offerPrice}
+                Rs.{product.offer.offerPrice}
               </p>
-
-              {/* ORIGINAL PRICE */}
               <p className="text-sm text-gray-400 line-through">
-                ₹{product.offer.originalPrice}
+                Rs.{product.offer.originalPrice}
               </p>
             </div>
           ) : (
-            <p className="text-xl font-bold text-green-600">₹{product.price}</p>
+            <p className="text-xl font-bold text-green-600">Rs.{product.price}</p>
           )}
         </div>
 
-        {/* BUTTON */}
         <a
           onClick={(e) => e.stopPropagation()}
           href={whatsappLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 block text-center bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition"
+          className="mt-4 block rounded-lg bg-green-500 py-2 text-center text-white transition hover:bg-green-600"
         >
-          💬 Enquire on WhatsApp
+          Enquire on WhatsApp
         </a>
+     <button
+  onClick={(e) => {
+    e.stopPropagation();
+    addToCart?.(product);   // ✅ safe call
+  }}
+  className="mt-2 w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition"
+>
+  🛒 Add to Cart
+</button>
 
-        {/* ADMIN ACTIONS */}
         {isLoggedIn && (
-          <div className="flex justify-between mt-3 text-sm">
+          <div className="mt-3 flex justify-between text-sm">
             <button
               onClick={() => onEdit(product)}
               className="text-blue-600 hover:underline"
@@ -273,4 +294,3 @@ ${window.location.origin}/product/${product._id}
 }
 
 export default ProductCard;
-

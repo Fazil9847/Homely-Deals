@@ -15,6 +15,9 @@ import WhatsAppButton from "./components/WhatsAppButton";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import ProductDetail from "./pages/ProductDetailStandard";
 import { normalizeWoodTypes } from "./utils/productUtils";
+import Wishlist from "./pages/Wishlist";
+import Cart from "./pages/Cart";
+
 
 const OFFER_GRACE_PERIOD_MS = 60 * 60 * 1000;
 
@@ -201,6 +204,28 @@ function App() {
     }
   };
 
+  const [wishlist, setWishlist] = useState(() => {
+  const stored = localStorage.getItem("wishlist");
+  return stored ? JSON.parse(stored) : [];
+});
+
+useEffect(() => {
+  localStorage.setItem("wishlist", JSON.stringify(wishlist));
+}, [wishlist]);
+
+
+const toggleWishlist = (product) => {
+  setWishlist((prev) => {
+    const exists = prev.find((p) => p._id === product._id);
+
+    if (exists) {
+      return prev.filter((p) => p._id !== product._id);
+    } else {
+      return [...prev, product];
+    }
+  });
+};
+
   useEffect(() => {
     let isMounted = true;
 
@@ -304,7 +329,108 @@ function App() {
     setActiveCategory(null);
     scrollToSection(productsSectionRef);
   };
+const normalizeCart = (items = []) => {
+  const merged = new Map();
 
+  items.forEach((item) => {
+    if (!item?._id) {
+      return;
+    }
+
+    const safeQty = Math.max(0, Number(item.qty) || 0);
+    const existing = merged.get(item._id);
+
+    if (existing) {
+      merged.set(item._id, { ...existing, qty: existing.qty + safeQty });
+      return;
+    }
+
+    merged.set(item._id, { ...item, qty: safeQty });
+  });
+
+  return Array.from(merged.values());
+};
+
+const syncCartWithProducts = (cartItems = [], productItems = []) => {
+  const productMap = new Map(productItems.map((item) => [item._id, item]));
+
+  return normalizeCart(cartItems)
+    .map((cartItem) => {
+      const latestProduct = productMap.get(cartItem._id);
+
+      if (!latestProduct) {
+        return null;
+      }
+
+      return {
+        ...latestProduct,
+        qty: cartItem.qty,
+      };
+    })
+    .filter(Boolean);
+};
+
+const [cart, setCart] = useState(() => {
+  const stored = localStorage.getItem("cart");
+  return stored ? normalizeCart(JSON.parse(stored)) : [];
+});
+
+useEffect(() => {
+  localStorage.setItem("cart", JSON.stringify(cart));
+}, [cart]);
+
+useEffect(() => {
+  if (!products.length) {
+    return;
+  }
+
+  setCart((prev) => {
+    const syncedCart = syncCartWithProducts(prev, products);
+
+    if (JSON.stringify(prev) === JSON.stringify(syncedCart)) {
+      return prev;
+    }
+
+    return syncedCart;
+  });
+}, [products]);
+
+const addToCart = (product) => {
+  setCart((prev) => {
+    const normalizedPrev = syncCartWithProducts(prev, products);
+    const exists = normalizedPrev.find((p) => p._id === product._id);
+    const latestProduct =
+      products.find((item) => item._id === product._id) || product;
+
+    if (exists) {
+      return normalizedPrev.map((p) =>
+        p._id === product._id
+          ? { ...p, qty: p.qty + 1 }
+          : p
+      );
+    } else {
+      return [...normalizedPrev, { ...latestProduct, qty: 1 }];
+    }
+  });
+};
+
+const removeFromCart = (id) => {
+  setCart((prev) => syncCartWithProducts(prev, products).filter((p) => p._id !== id));
+};
+
+const clearCart = () => {
+  setCart([]);
+};
+
+const updateQty = (id, qty) => {
+  if (qty < 0) return;
+
+  setCart((prev) =>
+    syncCartWithProducts(prev, products).map((p) =>
+      p._id === id ? { ...p, qty } : p
+    )
+  );
+};
   return (
     <Routes>
       {/* ================= HOME PAGE ================= */}
@@ -337,7 +463,14 @@ function App() {
                   localStorage.removeItem("token");
                   setIsLoggedIn(false);
                 }}
+                wishlistCount={wishlist.length}
+onWishlistClick={() => navigate("/wishlist")}
+  cartCount={cart.length}
+  onCartClick={() => navigate("/cart")}
+
               />
+
+              <div className="h-36 sm:h-32 lg:h-28" />
 
               {/* HERO */}
               <div className="relative rounded-2xl overflow-hidden mb-12 shadow-lg">
@@ -391,6 +524,9 @@ function App() {
                           product={product}
                           isLoggedIn={false}
                           phoneNumber={phoneNumber}
+                            wishlist={wishlist}
+  toggleWishlist={toggleWishlist}
+  addToCart={addToCart}
                         />
                       ))}
                     </div>
@@ -403,6 +539,9 @@ function App() {
                             product={product}
                             isLoggedIn={false}
                             phoneNumber={phoneNumber}
+                              wishlist={wishlist}
+  toggleWishlist={toggleWishlist}
+  addToCart={addToCart}
                           />
                         </div>
                       ))}
@@ -451,6 +590,10 @@ function App() {
                               phoneNumber={phoneNumber}
                               searchQuery={searchQuery}
                               searchType={searchType}
+                                wishlist={wishlist}
+  toggleWishlist={toggleWishlist}
+  addToCart={addToCart}
+  
                             />
                           ))}
                         </div>
@@ -585,6 +728,9 @@ function App() {
                           onEdit={handleEditProduct}
                           isLoggedIn={isLoggedIn}
                           phoneNumber={phoneNumber}
+                            wishlist={wishlist}
+  toggleWishlist={toggleWishlist}
+  addToCart={addToCart}
                         />
                       ))}
                     </div>
@@ -616,6 +762,31 @@ function App() {
           />
         }
       />
+
+
+      <Route
+  path="/wishlist"
+  element={
+    <Wishlist
+      wishlist={wishlist}
+      toggleWishlist={toggleWishlist}
+      phoneNumber={phoneNumber}
+    />
+  }
+/>
+
+<Route
+  path="/cart"
+  element={
+    <Cart
+      cart={cart}
+      updateQty={updateQty}
+      removeFromCart={removeFromCart}
+      clearCart={clearCart}
+      phoneNumber={phoneNumber}
+    />
+  }
+/>
     </Routes>
   );
 }
