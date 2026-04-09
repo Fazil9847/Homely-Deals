@@ -10,6 +10,24 @@ const AVAILABILITY_OPTIONS = [
   "Available on enquiry",
 ];
 
+const padDatePart = (value) => String(value).padStart(2, "0");
+
+const formatDateTimeLocalValue = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(
+    date.getDate()
+  )}T${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}`;
+};
+
 const INITIAL_FORM = {
   name: "",
   description: "",
@@ -19,7 +37,7 @@ const INITIAL_FORM = {
   category: "",
   availability: "Available on enquiry",
   label: "",
-  imagePosition: "center",
+  imagePosition: "",
   galleryImages: [],
 };
 
@@ -33,6 +51,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
   const [offerText, setOfferText] = useState("");
   const [uploading, setUploading] = useState(false);
   const [previewIsWide, setPreviewIsWide] = useState(false);
+  const [offerExpires, setOfferExpires] = useState("");
 
   const finalCategory =
     form.category === "Other" ? customCategory : form.category;
@@ -63,7 +82,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
         : predefinedWoodTypes,
       availability:
         editingProduct.availability || INITIAL_FORM.availability,
-      imagePosition: editingProduct.imagePosition || "center",
+      imagePosition: editingProduct.imagePosition || "",
       galleryImages: editingProduct.galleryImages || [],
     });
 
@@ -82,11 +101,15 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
       setOriginalPrice(editingProduct.offer.originalPrice || "");
       setOfferPrice(editingProduct.offer.offerPrice || "");
       setOfferText(editingProduct.offer.offerText || "");
+      setOfferExpires(
+        formatDateTimeLocalValue(editingProduct.offer.expiresAt)
+      );
     } else {
       setIsOffer(false);
       setOriginalPrice("");
       setOfferPrice("");
       setOfferText("");
+      setOfferExpires("");
     }
   }, [editingProduct]);
 
@@ -144,6 +167,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
     setOriginalPrice("");
     setOfferPrice("");
     setOfferText("");
+    setOfferExpires("");
   };
 
   const handleSubmit = async (e) => {
@@ -168,15 +192,15 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
         woodType: finalWoodTypes,
         price: Number(form.price),
       };
-
-      if (isOffer) {
-        payload.offer = {
-          isOffer: true,
-          originalPrice: Number(originalPrice),
-          offerPrice: Number(offerPrice),
-          offerText,
-        };
-      } else {
+if (isOffer) {
+  payload.offer = {
+    isOffer: true,
+    originalPrice: Number(originalPrice),
+    offerPrice: Number(offerPrice),
+    offerText,
+    expiresAt: offerExpires ? new Date(offerExpires).toISOString() : null
+  };
+} else {
         payload.offer = null;
       }
 
@@ -266,6 +290,8 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
       galleryImages: prev.galleryImages.filter((_, i) => i !== index),
     }));
   };
+
+
 
   return (
     <form
@@ -402,6 +428,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
               onChange={handleChange}
               className="w-full rounded-lg border px-3 py-2"
             >
+              <option value="">No Image Focus</option>
               <option value="top">Image Focus: Top</option>
               <option value="center">Image Focus: Center</option>
             </select>
@@ -529,6 +556,21 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
                 value={offerText}
                 onChange={(e) => setOfferText(e.target.value)}
               />
+
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Offer Expiry Date
+                </label>
+                <input
+                  type="datetime-local"
+                  value={offerExpires}
+                  onChange={(e) => setOfferExpires(e.target.value)}
+                  className="w-full rounded-lg border px-3 py-2"
+                />
+                <p className="text-xs text-gray-500">
+                  Leave empty if this offer should not expire automatically.
+                </p>
+              </div>
             </div>
           )}
 
@@ -556,3 +598,4 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
 }
 
 export default AddProduct;
+

@@ -6,6 +6,7 @@ import { getSettings } from "../services/settingsService";
 import { formatWoodTypes } from "../utils/productUtils";
 
 const formatPrice = (value) => `Rs.${value}`;
+const OFFER_GRACE_PERIOD_MS = 60 * 60 * 1000;
 
 const getDiscountPercent = (originalPrice, offerPrice) => {
   if (!originalPrice || !offerPrice) {
@@ -23,6 +24,8 @@ function ProductDetailStandard() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loadError, setLoadError] = useState("");
+  const [timeLeft, setTimeLeft] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -32,10 +35,18 @@ function ProductDetailStandard() {
           getSettings(),
         ]);
 
+        if (!productData?._id) {
+          setLoadError(productData?.message || "Product not found.");
+          setProduct(null);
+          return;
+        }
+
+        setLoadError("");
         setProduct(productData);
         setPhone(settingsData?.phone || "");
       } catch (error) {
         console.error(error);
+        setLoadError("Unable to load this product right now.");
       }
     };
 
@@ -70,6 +81,52 @@ function ProductDetailStandard() {
     }
   }, [product]);
 
+  useEffect(() => {
+    if (!product?.offer?.expiresAt) {
+      setTimeLeft("");
+      return;
+    }
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const expiry = new Date(product.offer.expiresAt).getTime();
+      const diff = expiry - now;
+
+      if (Number.isNaN(expiry)) {
+        setTimeLeft("");
+        return;
+      }
+
+      if (diff <= -OFFER_GRACE_PERIOD_MS) {
+        setTimeLeft("");
+        return;
+      }
+
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      const parts = [];
+
+      if (days > 0) {
+        parts.push(`${days}d`);
+      }
+
+      parts.push(`${hours}h`, `${minutes}m`, `${seconds}s`);
+      setTimeLeft(parts.join(" "));
+    };
+
+    updateTimer();
+    const interval = window.setInterval(updateTimer, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [product]);
+
   const galleryImages = useMemo(() => {
     if (!product) {
       return [];
@@ -81,15 +138,37 @@ function ProductDetailStandard() {
   }, [product]);
 
   if (!product) {
-    return <p className="mt-10 text-center text-gray-500">Loading product...</p>;
+    return (
+      <div className="px-4 py-10">
+        <div className="mx-auto max-w-3xl rounded-3xl bg-white p-8 text-center shadow-sm">
+          <p className="text-gray-600">
+            {loadError || "Loading product..."}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="mt-4 rounded-xl bg-black px-5 py-2 text-sm text-white transition hover:bg-gray-800"
+          >
+            Back to products
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  const finalPrice = product.offer?.isOffer
-    ? product.offer.offerPrice
-    : product.price;
-  const originalPrice = product.offer?.isOffer
-    ? product.offer.originalPrice
+  const offerExpiryTime = product.offer?.expiresAt
+    ? new Date(product.offer.expiresAt).getTime()
     : null;
+  const isOfferArchived =
+    offerExpiryTime && !Number.isNaN(offerExpiryTime)
+      ? Date.now() >= offerExpiryTime + OFFER_GRACE_PERIOD_MS
+      : false;
+  const shouldShowOffer = Boolean(product.offer?.isOffer && !isOfferArchived);
+  const shouldShowLabel = Boolean(
+    product.label && !(product.label === "Offer" && !shouldShowOffer)
+  );
+  const finalPrice = shouldShowOffer ? product.offer.offerPrice : product.price;
+  const originalPrice = shouldShowOffer ? product.offer.originalPrice : null;
   const discountPercent = getDiscountPercent(originalPrice, finalPrice);
   const savings =
     originalPrice && finalPrice ? Math.max(originalPrice - finalPrice, 0) : 0;
@@ -181,7 +260,7 @@ function ProductDetailStandard() {
                     {product.category}
                   </span>
                 )}
-                {product.label && (
+                {shouldShowLabel && (
                   <span className="rounded-full bg-black px-3 py-1 text-xs font-medium uppercase tracking-wide text-white">
                     {product.label}
                   </span>
@@ -214,7 +293,16 @@ function ProductDetailStandard() {
                 </p>
               ) : null}
 
-              {product.offer?.offerText ? (
+              {shouldShowOffer && timeLeft ? (
+                <div className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm">
+                  <p className="font-medium text-red-600">Limited Time Offer</p>
+                  <p className="mt-1 text-gray-700">
+                    {timeLeft === "Expired" ? "Offer expired" : `Ends in: ${timeLeft}`}
+                  </p>
+                </div>
+              ) : null}
+
+              {shouldShowOffer && product.offer?.offerText ? (
                 <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
                   {product.offer.offerText}
                 </p>

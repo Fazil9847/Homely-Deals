@@ -14,6 +14,10 @@ function ProductDetail() {
 
   const [product, setProduct] = useState(null);
   const [phone, setPhone] = useState("");
+ const [timeLeft, setTimeLeft] = useState("Calculating...");
+const isExpired =
+  product?.offer?.expiresAt &&
+  new Date(product.offer.expiresAt) < new Date();
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,6 +59,7 @@ useEffect(() => {
     }
   };
 
+
   if (product) {
     loadRelated();
   }
@@ -63,6 +68,37 @@ useEffect(() => {
     return <p className="text-center mt-10">Loading...</p>;
   }
 
+  
+
+  useEffect(() => {
+  if (!product?.offer?.expiresAt) return;
+
+  const interval = setInterval(() => {
+    const now = new Date().getTime();
+    const expiry = new Date(product.offer.expiresAt).getTime();
+    const diff = expiry - now;
+
+    if (diff <= 0) {
+      setTimeLeft("Expired");
+      clearInterval(interval);
+      return;
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    let timeString = `${hours}h ${minutes}m ${seconds}s`;
+
+    if (diff < 3600000) {
+      timeString = `⚠️ ${timeString}`;
+    }
+
+    setTimeLeft(timeString);
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [product]);
 
 const finalPrice = product.offer?.isOffer
   ? product.offer.offerPrice
@@ -177,9 +213,26 @@ ${window.location.origin}/product/${product._id}
   <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
 
     {/* TOP LINE */}
-    <p className="text-red-600 font-semibold mb-2 text-sm">
-      🔥 Limited Time Offer
-    </p>
+   <p className="text-red-600 font-semibold mb-2 text-sm">
+  🔥 Limited Time Offer
+</p>
+
+<p className="text-sm text-gray-600 mb-2">
+  ⏳ Ends in:
+  <span className="ml-1 font-semibold text-red-500">
+    {timeLeft}
+  </span>
+</p>
+{timeLeft === "Expired" ? (
+  <p className="text-sm text-gray-400">Offer expired</p>
+) : (
+  <p className="text-sm text-gray-600 mb-2">
+    ⏳ Ends in:
+    <span className="ml-1 font-semibold text-red-500">
+      {timeLeft}
+    </span>
+  </p>
+)}
 
     {/* PRICE */}
     <div className="flex items-center gap-4 mb-2">

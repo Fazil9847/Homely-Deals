@@ -12,6 +12,8 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import ProductDetail from "./pages/ProductDetailStandard";
 import { normalizeWoodTypes } from "./utils/productUtils";
 
+const OFFER_GRACE_PERIOD_MS = 60 * 60 * 1000;
+
 const SORT_OPTIONS = [
   { value: "featured", label: "Featured" },
   { value: "price-low-high", label: "Price: Low to High" },
@@ -49,8 +51,26 @@ const getSearchValues = (product, searchType) => {
   return product.name ? [product.name] : [];
 };
 
-const getDisplayPrice = (product) =>
-  product.offer?.isOffer ? product.offer.offerPrice : product.price;
+const isOfferActive = (product, now = Date.now()) => {
+  if (!product.offer?.isOffer) {
+    return false;
+  }
+
+  if (!product.offer?.expiresAt) {
+    return true;
+  }
+
+  const expiryTime = new Date(product.offer.expiresAt).getTime();
+
+  if (Number.isNaN(expiryTime)) {
+    return true;
+  }
+
+  return now < expiryTime + OFFER_GRACE_PERIOD_MS;
+};
+
+const getDisplayPrice = (product, now = Date.now()) =>
+  isOfferActive(product, now) ? product.offer.offerPrice : product.price;
 
 const sortProducts = (items, sortBy) => {
   const productsToSort = [...items];
@@ -78,8 +98,8 @@ const sortProducts = (items, sortBy) => {
       });
     case "offers-first":
       return productsToSort.sort((a, b) => {
-        const aScore = a.offer?.isOffer ? 1 : 0;
-        const bScore = b.offer?.isOffer ? 1 : 0;
+        const aScore = isOfferActive(a) ? 1 : 0;
+        const bScore = isOfferActive(b) ? 1 : 0;
         return bScore - aScore || getDisplayPrice(a) - getDisplayPrice(b);
       });
     case "name-az":
@@ -101,11 +121,12 @@ function App() {
   const [searchType, setSearchType] = useState("all");
   const [categorySort, setCategorySort] = useState("featured");
   const [visibleSearchCount, setVisibleSearchCount] = useState(3);
+  const [now, setNow] = useState(Date.now());
   const navigate = useNavigate();
   const adminSectionRef = useRef(null);
   const productsSectionRef = useRef(null);
   const footerRef = useRef(null);
-  const offers = products.filter((product) => product.offer?.isOffer);
+  const offers = products.filter((product) => isOfferActive(product, now));
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const filteredProducts = normalizedSearch
     ? products.filter((product) =>
@@ -192,6 +213,14 @@ function App() {
   useEffect(() => {
     setVisibleSearchCount(3);
   }, [normalizedSearch]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setNow(Date.now());
+    }, 60000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (editingProduct && isLoggedIn) {

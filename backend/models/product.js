@@ -38,7 +38,8 @@ offer: {
   originalPrice: Number,
   offerPrice: Number,
   discountPercent: Number,
-  offerText: String   // "Upto 50% Off + Extra 5%"
+  offerText: String ,  // "Upto 50% Off + Extra 5%"
+  expiresAt: Date  
 }
   },
   { timestamps: true }

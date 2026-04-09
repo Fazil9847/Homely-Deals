@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatWoodTypes, normalizeWoodTypes } from "../utils/productUtils";
 
+const OFFER_GRACE_PERIOD_MS = 60 * 60 * 1000;
+
 const highlightText = (text, query) => {
   if (!text || !query?.trim()) {
     return text;
@@ -66,7 +68,19 @@ function ProductCard({
   searchQuery = "",
   searchType = "all",
 }) {
-const finalPrice = product.offer?.isOffer
+const [now, setNow] = useState(Date.now());
+const offerExpiryTime = product.offer?.expiresAt
+  ? new Date(product.offer.expiresAt).getTime()
+  : null;
+const isOfferArchived =
+  offerExpiryTime && !Number.isNaN(offerExpiryTime)
+    ? now >= offerExpiryTime + OFFER_GRACE_PERIOD_MS
+    : false;
+const shouldShowOffer = Boolean(product.offer?.isOffer && !isOfferArchived);
+const shouldShowLabel = Boolean(
+  product.label && !(product.label === "Offer" && !shouldShowOffer)
+);
+const finalPrice = shouldShowOffer
   ? product.offer.offerPrice
   : product.price;
 const woodTypeLabel = formatWoodTypes(product.woodType);
@@ -107,6 +121,18 @@ ${window.location.origin}/product/${product._id}
   };
 }, [product.image]);
 
+  useEffect(() => {
+    if (!product.offer?.expiresAt) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setNow(Date.now());
+    }, 60000);
+
+    return () => window.clearInterval(interval);
+  }, [product.offer?.expiresAt]);
+
   return (
    <div
  
@@ -122,7 +148,7 @@ ${window.location.origin}/product/${product._id}
     className={`w-full overflow-hidden bg-gray-100
       ${isWide ? "aspect-[16/9]" : "aspect-[4/5]"}`}
   >
-  {product.offer?.isOffer && (
+  {shouldShowOffer && (
   <span className="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded shadow">
   {Math.round(
   ((product.offer.originalPrice - product.offer.offerPrice) /
@@ -139,7 +165,7 @@ ${window.location.origin}/product/${product._id}
     group-hover:scale-105 transition duration-300`}
 />
 
-{product.offer?.isOffer &&
+{shouldShowOffer &&
   (product.offer?.offerText || (
     <>
       {Math.round(
@@ -149,7 +175,7 @@ ${window.location.origin}/product/${product._id}
     </>
   ))}
   </div>
-  {product.label && (
+  {shouldShowLabel && (
     <span className={`absolute top-3 left-3 text-xs px-3 py-1 rounded-full text-white
       ${product.label === "Offer" ? "bg-red-500" :
         product.label === "New" ? "bg-green-500" :
@@ -192,7 +218,7 @@ ${window.location.origin}/product/${product._id}
         {/* PRICE */}
        <div className="mt-2">
 
-  {product.offer?.isOffer ? (
+  {shouldShowOffer ? (
     <div>
 
       {/* OFFER PRICE */}
