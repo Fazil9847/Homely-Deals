@@ -27,15 +27,13 @@ function SettingsForm({ onUpdate }) {
         const data = await getSettings();
 
         if (data) {
-          const savedExtraLinks =
+     const savedExtraLinks =
   Array.isArray(data.extraLinks) && data.extraLinks.length > 0
     ? data.extraLinks.map(link => ({
-        id: link.id || Date.now() + Math.random(),
+        id: link._id || Date.now() + Math.random(),
         title: link.title || "",
         url: link.url || ""
       }))
-              : data.otherLink
-                ? [{ title: data.otherLinkTitle || "Other", url: data.otherLink }]
                 : [emptyExtraLink()];
 
           setForm({
@@ -77,17 +75,12 @@ function SettingsForm({ onUpdate }) {
       extraLinks: [...prev.extraLinks, emptyExtraLink()],
     }));
   };
-
-  const removeExtraLink = (index) => {
-    setForm((prev) => {
-      const nextLinks = prev.extraLinks.filter((_, linkIndex) => linkIndex !== index);
-
-      return {
-        ...prev,
-        extraLinks: nextLinks.length > 0 ? nextLinks : [emptyExtraLink()],
-      };
-    });
-  };
+const removeExtraLink = (index) => {
+  setForm((prev) => ({
+    ...prev,
+    extraLinks: prev.extraLinks.filter((_, i) => i !== index),
+  }));
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,7 +88,17 @@ function SettingsForm({ onUpdate }) {
     try {
       setLoading(true);
 
-      await updateSettings(form);
+      const cleanedLinks = form.extraLinks
+  .map(link => ({
+    title: link.title.trim(),
+    url: link.url.trim()
+  }))
+  .filter(link => link.title && link.url);
+
+await updateSettings({
+  ...form,
+  extraLinks: cleanedLinks
+});
       onUpdate?.();
 
       alert("Settings updated");
@@ -194,7 +197,7 @@ function SettingsForm({ onUpdate }) {
         <div className="space-y-3">
           {form.extraLinks.map((link, index) => (
             <div
-            key={link.id}
+          key={index}
               className="rounded-xl border border-gray-200 p-3"
             >
               <div className="grid gap-3 md:grid-cols-[1fr_1.4fr_auto]">
