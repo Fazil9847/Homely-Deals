@@ -1,15 +1,23 @@
 import { useState, useEffect } from "react";
 import { updateSettings, getSettings } from "../services/settingsService";
 
+const emptyExtraLink = () => ({
+  id: Date.now() + Math.random(),
+  title: "",
+  url: ""
+});
+
 function SettingsForm({ onUpdate }) {
   const [form, setForm] = useState({
     shopName: "",
     phone: "",
+    email: "",
+    businessHours: "",
     location: "",
     mapLink: "",
     instagram: "",
     facebook: "",
-    otherLink: "",
+    extraLinks: [emptyExtraLink()],
   });
   const [loading, setLoading] = useState(false);
 
@@ -19,14 +27,27 @@ function SettingsForm({ onUpdate }) {
         const data = await getSettings();
 
         if (data) {
+          const savedExtraLinks =
+  Array.isArray(data.extraLinks) && data.extraLinks.length > 0
+    ? data.extraLinks.map(link => ({
+        id: link.id || Date.now() + Math.random(),
+        title: link.title || "",
+        url: link.url || ""
+      }))
+              : data.otherLink
+                ? [{ title: data.otherLinkTitle || "Other", url: data.otherLink }]
+                : [emptyExtraLink()];
+
           setForm({
             shopName: data.shopName || "",
             phone: data.phone || "",
+            email: data.email || "",
+            businessHours: data.businessHours || "",
             location: data.location || "",
             mapLink: data.mapLink || "",
             instagram: data.instagram || "",
             facebook: data.facebook || "",
-            otherLink: data.otherLink || "",
+            extraLinks: savedExtraLinks,
           });
         }
       } catch (error) {
@@ -40,6 +61,34 @@ function SettingsForm({ onUpdate }) {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  const handleExtraLinkChange = (index, field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      extraLinks: prev.extraLinks.map((link, linkIndex) =>
+        linkIndex === index ? { ...link, [field]: value } : link,
+      ),
+    }));
+  };
+
+  const addExtraLink = () => {
+    setForm((prev) => ({
+      ...prev,
+      extraLinks: [...prev.extraLinks, emptyExtraLink()],
+    }));
+  };
+
+  const removeExtraLink = (index) => {
+    setForm((prev) => {
+      const nextLinks = prev.extraLinks.filter((_, linkIndex) => linkIndex !== index);
+
+      return {
+        ...prev,
+        extraLinks: nextLinks.length > 0 ? nextLinks : [emptyExtraLink()],
+      };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -77,6 +126,22 @@ function SettingsForm({ onUpdate }) {
       />
 
       <input
+        name="email"
+        value={form.email}
+        onChange={handleChange}
+        placeholder="Email"
+        className="mb-3 w-full rounded border p-2"
+      />
+
+      <input
+        name="businessHours"
+        value={form.businessHours}
+        onChange={handleChange}
+        placeholder="Business Hours (e.g. Mon - Fri, 9:00 AM - 6:00 PM)"
+        className="mb-3 w-full rounded border p-2"
+      />
+
+      <input
         name="location"
         value={form.location}
         onChange={handleChange}
@@ -108,13 +173,61 @@ function SettingsForm({ onUpdate }) {
         className="mb-3 w-full rounded border p-2"
       />
 
-      <input
-        name="otherLink"
-        value={form.otherLink}
-        onChange={handleChange}
-        placeholder="Other Link"
-        className="mb-4 w-full rounded border p-2"
-      />
+      <div className="mb-4 rounded-xl border border-gray-200 p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">Custom Footer Links</h3>
+            <p className="text-xs text-gray-500">
+              Add links like Catalogue, Website, Brochure, or anything else.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={addExtraLink}
+            className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-black hover:text-black"
+          >
+            Add Link
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {form.extraLinks.map((link, index) => (
+            <div
+            key={link.id}
+              className="rounded-xl border border-gray-200 p-3"
+            >
+              <div className="grid gap-3 md:grid-cols-[1fr_1.4fr_auto]">
+                <input
+                  value={link.title}
+                  onChange={(e) =>
+                    handleExtraLinkChange(index, "title", e.target.value)
+                  }
+                  placeholder="Link Title"
+                  className="w-full rounded border p-2"
+                />
+
+                <input
+                  value={link.url}
+                  onChange={(e) =>
+                    handleExtraLinkChange(index, "url", e.target.value)
+                  }
+                  placeholder="Link URL"
+                  className="w-full rounded border p-2"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => removeExtraLink(index)}
+                  className="rounded border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       <button
         className="w-full rounded bg-black px-4 py-2 text-white"
