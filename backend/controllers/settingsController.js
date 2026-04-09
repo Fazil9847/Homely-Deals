@@ -8,7 +8,7 @@ const getSettings = async (req, res) => {
     settings = await Settings.create({
       shopName: "HOMLY DEALS",
       phone: "",
-      location: ""
+      location: "",
     });
   }
 

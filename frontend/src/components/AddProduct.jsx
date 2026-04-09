@@ -24,7 +24,7 @@ const formatDateTimeLocalValue = (value) => {
   }
 
   return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(
-    date.getDate()
+    date.getDate(),
   )}T${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}`;
 };
 
@@ -69,10 +69,11 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
 
     const normalizedWoodTypes = normalizeWoodTypes(editingProduct.woodType);
     const predefinedWoodTypes = normalizedWoodTypes.filter((item) =>
-      WOOD_TYPE_OPTIONS.includes(item)
+      WOOD_TYPE_OPTIONS.includes(item),
     );
     const customWoodTypeValue =
-      normalizedWoodTypes.find((item) => !WOOD_TYPE_OPTIONS.includes(item)) || "";
+      normalizedWoodTypes.find((item) => !WOOD_TYPE_OPTIONS.includes(item)) ||
+      "";
 
     setForm({
       ...INITIAL_FORM,
@@ -80,30 +81,26 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
       woodType: customWoodTypeValue
         ? [...predefinedWoodTypes, "Other"]
         : predefinedWoodTypes,
-      availability:
-        editingProduct.availability || INITIAL_FORM.availability,
+      availability: editingProduct.availability || INITIAL_FORM.availability,
       imagePosition: editingProduct.imagePosition || "",
       galleryImages: editingProduct.galleryImages || [],
     });
 
     setCustomCategory(
-      editingProduct.category && !CATEGORY_OPTIONS.includes(editingProduct.category)
+      editingProduct.category &&
+        !CATEGORY_OPTIONS.includes(editingProduct.category)
         ? editingProduct.category
-        : ""
+        : "",
     );
 
-    setCustomWoodType(
-      customWoodTypeValue
-    );
+    setCustomWoodType(customWoodTypeValue);
 
     if (editingProduct.offer?.isOffer) {
       setIsOffer(true);
       setOriginalPrice(editingProduct.offer.originalPrice || "");
       setOfferPrice(editingProduct.offer.offerPrice || "");
       setOfferText(editingProduct.offer.offerText || "");
-      setOfferExpires(
-        formatDateTimeLocalValue(editingProduct.offer.expiresAt)
-      );
+      setOfferExpires(formatDateTimeLocalValue(editingProduct.offer.expiresAt));
     } else {
       setIsOffer(false);
       setOriginalPrice("");
@@ -192,15 +189,15 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
         woodType: finalWoodTypes,
         price: Number(form.price),
       };
-if (isOffer) {
-  payload.offer = {
-    isOffer: true,
-    originalPrice: Number(originalPrice),
-    offerPrice: Number(offerPrice),
-    offerText,
-    expiresAt: offerExpires ? new Date(offerExpires).toISOString() : null
-  };
-} else {
+      if (isOffer) {
+        payload.offer = {
+          isOffer: true,
+          originalPrice: Number(originalPrice),
+          offerPrice: Number(offerPrice),
+          offerText,
+          expiresAt: offerExpires ? new Date(offerExpires).toISOString() : null,
+        };
+      } else {
         payload.offer = null;
       }
 
@@ -291,8 +288,6 @@ if (isOffer) {
     }));
   };
 
-
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -303,7 +298,8 @@ if (isOffer) {
           {editingProduct ? "Edit Product" : "Add New Product"}
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          Fill in the product details, then upload images and optional offer info.
+          Fill in the product details, then upload images and optional offer
+          info.
         </p>
       </div>
 
@@ -348,10 +344,15 @@ if (isOffer) {
             </div>
 
             <div className="rounded-lg border px-3 py-3 md:col-span-2">
-              <p className="mb-3 text-sm font-medium text-gray-700">Wood Type</p>
+              <p className="mb-3 text-sm font-medium text-gray-700">
+                Wood Type
+              </p>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {WOOD_TYPE_OPTIONS.map((woodType) => (
-                  <label key={woodType} className="flex items-center gap-2 text-sm text-gray-700">
+                  <label
+                    key={woodType}
+                    className="flex items-center gap-2 text-sm text-gray-700"
+                  >
                     <input
                       type="checkbox"
                       checked={form.woodType.includes(woodType)}
@@ -442,7 +443,9 @@ if (isOffer) {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-lg border border-dashed p-4">
-              <p className="mb-2 text-sm font-medium text-gray-700">Main Image</p>
+              <p className="mb-2 text-sm font-medium text-gray-700">
+                Main Image
+              </p>
               <input
                 type="file"
                 onChange={handleImageUpload}
@@ -462,7 +465,9 @@ if (isOffer) {
                       src={form.image}
                       alt="preview"
                       className={`h-full w-full object-cover ${
-                        form.imagePosition === "top" ? "object-top" : "object-center"
+                        form.imagePosition === "top"
+                          ? "object-top"
+                          : "object-center"
                       }`}
                     />
                   </div>
@@ -472,7 +477,8 @@ if (isOffer) {
                       {form.name || "Product Name Preview"}
                     </p>
                     <p className="line-clamp-2 text-xs text-gray-500">
-                      {form.description || "This is how the image will look inside the product card."}
+                      {form.description ||
+                        "This is how the image will look inside the product card."}
                     </p>
                     <p className="text-xs text-gray-400">
                       Wood: {getFinalWoodTypes().join(", ") || "Wood Type"}
@@ -576,7 +582,9 @@ if (isOffer) {
 
           {originalPrice > 0 && offerPrice > 0 && (
             <p className="text-sm text-green-600">
-              Discount: {Math.round(((originalPrice - offerPrice) / originalPrice) * 100)}%
+              Discount:{" "}
+              {Math.round(((originalPrice - offerPrice) / originalPrice) * 100)}
+              %
             </p>
           )}
         </section>
@@ -590,12 +598,11 @@ if (isOffer) {
         {uploading
           ? "Uploading Image..."
           : editingProduct
-          ? "Update Product"
-          : "Add Product"}
+            ? "Update Product"
+            : "Add Product"}
       </button>
     </form>
   );
 }
 
 export default AddProduct;
-

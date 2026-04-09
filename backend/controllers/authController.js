@@ -11,7 +11,7 @@ const register = async (req, res) => {
 
     const user = new User({
       username,
-      password: hashedPassword
+      password: hashedPassword,
     });
 
     await user.save();
@@ -39,11 +39,9 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Wrong password" });
     }
 
-    const token = jwt.sign(
-  { id: user._id },
-  process.env.JWT_SECRET,
-  { expiresIn: "1d" }
-);
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     res.json({ token });
   } catch (error) {

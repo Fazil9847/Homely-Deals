@@ -19,4 +19,3 @@ export const formatWoodTypes = (value) => {
   const woodTypes = normalizeWoodTypes(value);
   return woodTypes.length > 0 ? woodTypes.join(", ") : "Not specified";
 };
-

@@ -5,48 +5,48 @@ function SettingsForm() {
   const [form, setForm] = useState({
     shopName: "",
     phone: "",
-    location: ""
+    location: "",
   });
   const [loading, setLoading] = useState(false);
 
-useEffect(() => {
-  const load = async () => {
-    try {
-   const data = await getSettings();
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getSettings();
 
-if (data) {
-  setForm({
-    shopName: data.shopName || "",
-    phone: data.phone || "",
-    location: data.location || ""
-  });
-}
-    } catch (error) {
-      console.error(error);
-    }
-  };
+        if (data) {
+          setForm({
+            shopName: data.shopName || "",
+            phone: data.phone || "",
+            location: data.location || "",
+          });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-  load();
-}, []);
+    load();
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    await updateSettings(form);
+      await updateSettings(form);
 
-    alert("Settings updated");
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setLoading(false);
-  }
-};
+      alert("Settings updated");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <form className="bg-white p-4 rounded shadow mb-6" onSubmit={handleSubmit}>
       <h2 className="text-lg font-semibold mb-3">Shop Settings</h2>
@@ -75,12 +75,12 @@ const handleSubmit = async (e) => {
         className="border p-2 rounded w-full mb-2"
       />
 
-     <button
-  className="bg-black text-white px-4 py-2 rounded w-full"
-  disabled={loading}
->
-  {loading ? "Saving..." : "Save Settings"}
-</button>
+      <button
+        className="bg-black text-white px-4 py-2 rounded w-full"
+        disabled={loading}
+      >
+        {loading ? "Saving..." : "Save Settings"}
+      </button>
     </form>
   );
 }

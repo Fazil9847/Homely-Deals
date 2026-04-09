@@ -5,7 +5,7 @@ function Login({ onLogin }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     username: "",
-    password: ""
+    password: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,9 +24,9 @@ function Login({ onLogin }) {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(form)
+        body: JSON.stringify(form),
       });
 
       const data = await res.json();
@@ -37,7 +37,7 @@ function Login({ onLogin }) {
       } else {
         setErrorMessage(data.message || "Login failed. Please try again.");
       }
-    } catch (error) {
+    } catch {
       setErrorMessage("Unable to sign in right now. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -71,7 +71,8 @@ function Login({ onLogin }) {
               Sign in to manage your store
             </h1>
             <p className="mt-2 text-sm text-gray-500">
-              This area is only for the shop owner to manage products and settings.
+              This area is only for the shop owner to manage products and
+              settings.
             </p>
           </div>
 

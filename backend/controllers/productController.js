@@ -29,14 +29,14 @@ const createProduct = async (req, res) => {
       label,
       imagePosition,
       galleryImages,
-      offer
+      offer,
     } = req.body;
 
     let discountPercent = 0;
 
     if (offer?.originalPrice && offer?.offerPrice) {
       discountPercent = Math.round(
-        ((offer.originalPrice - offer.offerPrice) / offer.originalPrice) * 100
+        ((offer.originalPrice - offer.offerPrice) / offer.originalPrice) * 100,
       );
     }
 
@@ -51,9 +51,7 @@ const createProduct = async (req, res) => {
       label,
       imagePosition,
       galleryImages,
-      offer: offer
-        ? { ...offer, discountPercent }
-        : null
+      offer: offer ? { ...offer, discountPercent } : null,
     });
 
     const savedProduct = await product.save();
@@ -90,17 +88,17 @@ const deleteProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-  const normalizedWoodType = normalizeWoodType(req.body.woodType);
-  const updated = await Product.findByIdAndUpdate(
-  req.params.id,
-  {
-    ...req.body,
-    woodType: normalizedWoodType,
-    availability: req.body.availability || "Available on enquiry",
-    label: req.body.label === "" ? null : req.body.label
-  },
-  { new: true }
-);
+    const normalizedWoodType = normalizeWoodType(req.body.woodType);
+    const updated = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...req.body,
+        woodType: normalizedWoodType,
+        availability: req.body.availability || "Available on enquiry",
+        label: req.body.label === "" ? null : req.body.label,
+      },
+      { new: true },
+    );
     if (!updated) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -126,6 +124,10 @@ const getProductById = async (req, res) => {
   }
 };
 
-
-
-module.exports = { createProduct, getProducts, deleteProduct, updateProduct, getProductById };
+module.exports = {
+  createProduct,
+  getProducts,
+  deleteProduct,
+  updateProduct,
+  getProductById,
+};

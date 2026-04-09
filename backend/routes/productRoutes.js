@@ -6,7 +6,7 @@ const {
   getProducts,
   deleteProduct,
   updateProduct,
-  getProductById
+  getProductById,
 } = require("../controllers/productController");
 
 const protect = require("../middleware/authMiddleware");

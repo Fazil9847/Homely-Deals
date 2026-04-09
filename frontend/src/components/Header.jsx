@@ -40,10 +40,10 @@ function Header({
     searchType === "all"
       ? "Search products, categories, wood types..."
       : searchType === "category"
-      ? "Search category..."
-      : searchType === "woodType"
-      ? "Search wood type..."
-      : "Search product...";
+        ? "Search category..."
+        : searchType === "woodType"
+          ? "Search wood type..."
+          : "Search product...";
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -109,7 +109,9 @@ function Header({
                         >
                           <span>{filter.label}</span>
                           {isActive && (
-                            <span className="text-xs text-gray-500">Active</span>
+                            <span className="text-xs text-gray-500">
+                              Active
+                            </span>
                           )}
                         </button>
                       );

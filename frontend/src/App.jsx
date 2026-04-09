@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import ProductCard from "./components/ProductCard";
 import AddProduct from "./components/AddProduct";
-import { getProducts, deleteProduct, updateProduct } from "./services/productService";
+import {
+  getProducts,
+  deleteProduct,
+  updateProduct,
+} from "./services/productService";
 import Login from "./pages/Login";
 import { getSettings } from "./services/settingsService";
 import SettingsForm from "./components/SettingsForm";
@@ -78,11 +82,11 @@ const sortProducts = (items, sortBy) => {
   switch (sortBy) {
     case "price-low-high":
       return productsToSort.sort(
-        (a, b) => getDisplayPrice(a) - getDisplayPrice(b)
+        (a, b) => getDisplayPrice(a) - getDisplayPrice(b),
       );
     case "price-high-low":
       return productsToSort.sort(
-        (a, b) => getDisplayPrice(b) - getDisplayPrice(a)
+        (a, b) => getDisplayPrice(b) - getDisplayPrice(a),
       );
     case "best-seller":
       return productsToSort.sort((a, b) => {
@@ -112,16 +116,14 @@ const sortProducts = (items, sortBy) => {
 function App() {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    !!localStorage.getItem("token")
-  );
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const [settings, setSettings] = useState(null);
   const [activeCategory, setActiveCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("all");
   const [categorySort, setCategorySort] = useState("featured");
   const [visibleSearchCount, setVisibleSearchCount] = useState(3);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const navigate = useNavigate();
   const adminSectionRef = useRef(null);
   const productsSectionRef = useRef(null);
@@ -131,8 +133,8 @@ function App() {
   const filteredProducts = normalizedSearch
     ? products.filter((product) =>
         getSearchValues(product, searchType).some((value) =>
-          value.toLowerCase().includes(normalizedSearch)
-        )
+          value.toLowerCase().includes(normalizedSearch),
+        ),
       )
     : [];
   const canMatchInsideWord = normalizedSearch.length > 1;
@@ -143,7 +145,7 @@ function App() {
             value,
             kind: SEARCH_OPTIONS[searchType],
             matchText: value.toLowerCase(),
-          }))
+          })),
         ),
       ]
         .filter(Boolean)
@@ -152,19 +154,21 @@ function App() {
             array.findIndex(
               (candidate) =>
                 candidate.value.toLowerCase() === item.value.toLowerCase() &&
-                candidate.kind === item.kind
-            ) === index
+                candidate.kind === item.kind,
+            ) === index,
         )
         .map((item) => {
           let score = Number.POSITIVE_INFINITY;
 
           if (item.matchText.startsWith(normalizedSearch)) {
-            score = item.kind === "Wood Type" ? 0 : item.kind === "Category" ? 1 : 2;
+            score =
+              item.kind === "Wood Type" ? 0 : item.kind === "Category" ? 1 : 2;
           } else if (
             canMatchInsideWord &&
             item.matchText.includes(normalizedSearch)
           ) {
-            score = item.kind === "Wood Type" ? 3 : item.kind === "Category" ? 4 : 5;
+            score =
+              item.kind === "Wood Type" ? 3 : item.kind === "Category" ? 4 : 5;
           }
 
           return {
@@ -180,11 +184,15 @@ function App() {
   const categoryProducts = activeCategory
     ? sortProducts(
         products.filter((product) => product.category === activeCategory),
-        categorySort
+        categorySort,
       )
     : [];
 
-  const loadSettings = async () => {
+  const scrollToSection = (ref) => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const refreshSettings = async () => {
     try {
       const data = await getSettings();
       setSettings(data);
@@ -194,7 +202,21 @@ function App() {
   };
 
   useEffect(() => {
-    loadSettings();
+    let isMounted = true;
+
+    getSettings()
+      .then((data) => {
+        if (isMounted) {
+          setSettings(data);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -209,10 +231,6 @@ function App() {
 
     loadProducts();
   }, []);
-
-  useEffect(() => {
-    setVisibleSearchCount(3);
-  }, [normalizedSearch]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -252,9 +270,7 @@ function App() {
     try {
       const updated = await updateProduct(id, updatedData);
 
-      setProducts((prev) =>
-        prev.map((p) => (p._id === id ? updated : p))
-      );
+      setProducts((prev) => prev.map((p) => (p._id === id ? updated : p)));
 
       setEditingProduct(null);
     } catch (error) {
@@ -270,12 +286,14 @@ function App() {
     setSearchQuery(value);
     setActiveCategory(null);
     setCategorySort("featured");
+    setVisibleSearchCount(3);
   };
 
   const handleSuggestionSelect = (value) => {
     setSearchQuery(value);
     setActiveCategory(null);
     setCategorySort("featured");
+    setVisibleSearchCount(3);
   };
 
   const handleSearchSubmit = () => {
@@ -287,21 +305,14 @@ function App() {
     scrollToSection(productsSectionRef);
   };
 
-  const scrollToSection = (ref) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
     <Routes>
-
       {/* ================= HOME PAGE ================= */}
       <Route
         path="/"
         element={
           <div className="min-h-screen bg-gray-100">
-
             <div className="max-w-6xl mx-auto p-4">
-
               {/* HEADER */}
               <Header
                 settings={settings}
@@ -315,6 +326,7 @@ function App() {
                   setSearchQuery("");
                   setActiveCategory(null);
                   setCategorySort("featured");
+                  setVisibleSearchCount(3);
                 }}
                 onSearchSubmit={handleSearchSubmit}
                 onSuggestionSelect={handleSuggestionSelect}
@@ -352,11 +364,9 @@ function App() {
                 </div>
               </div>
 
- 
-
               {/* ADMIN SECTION */}
               <div ref={adminSectionRef} className="mb-6">
-                {isLoggedIn && <SettingsForm onUpdate={loadSettings} />}
+                {isLoggedIn && <SettingsForm onUpdate={refreshSettings} />}
                 {isLoggedIn && (
                   <AddProduct
                     onProductAdded={handleNewProduct}
@@ -366,42 +376,40 @@ function App() {
                 )}
               </div>
               {/* ================= OFFER SECTION ================= */}
-{offers.length > 0 && !normalizedSearch && (
-  <div className="mb-14">
+              {offers.length > 0 && !normalizedSearch && (
+                <div className="mb-14">
+                  <h2 className="text-2xl font-semibold mb-6">
+                    🔥 Special Offers
+                  </h2>
 
-    <h2 className="text-2xl font-semibold mb-6">
-      🔥 Special Offers
-    </h2>
-
-    {offers.length <= 3 ? (
-      // ✅ GRID (for few items)
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {offers.map(product => (
-          <ProductCard
-            key={product._id}
-            product={product}
-            isLoggedIn={false}
-            phoneNumber={phoneNumber}
-          />
-        ))}
-      </div>
-    ) : (
-      // ✅ SCROLL (for many items)
-      <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide">
-        {offers.map(product => (
-          <div key={product._id} className="min-w-[280px]">
-            <ProductCard
-              product={product}
-              isLoggedIn={false}
-              phoneNumber={phoneNumber}
-            />
-          </div>
-        ))}
-      </div>
-    )}
-
-  </div>
-)}
+                  {offers.length <= 3 ? (
+                    // ✅ GRID (for few items)
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                      {offers.map((product) => (
+                        <ProductCard
+                          key={product._id}
+                          product={product}
+                          isLoggedIn={false}
+                          phoneNumber={phoneNumber}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    // ✅ SCROLL (for many items)
+                    <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide">
+                      {offers.map((product) => (
+                        <div key={product._id} className="min-w-[280px]">
+                          <ProductCard
+                            product={product}
+                            isLoggedIn={false}
+                            phoneNumber={phoneNumber}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div ref={productsSectionRef}>
                 {normalizedSearch && (
@@ -414,13 +422,16 @@ function App() {
                         <p className="text-sm text-gray-500">
                           {filteredProducts.length} product
                           {filteredProducts.length === 1 ? "" : "s"} found in{" "}
-                          {SEARCH_OPTIONS[searchType]} for "
-                          {searchQuery.trim()}"
+                          {SEARCH_OPTIONS[searchType]} for "{searchQuery.trim()}
+                          "
                         </p>
                       </div>
 
                       <button
-                        onClick={() => setSearchQuery("")}
+                        onClick={() => {
+                          setSearchQuery("");
+                          setVisibleSearchCount(3);
+                        }}
                         className="text-sm text-gray-600 hover:underline"
                       >
                         Clear search
@@ -470,96 +481,103 @@ function App() {
                       </>
                     ) : (
                       <div className="rounded-2xl bg-white p-8 text-center text-gray-500 shadow-sm">
-                        No products matched this {SEARCH_OPTIONS[searchType].toLowerCase()} search.
+                        No products matched this{" "}
+                        {SEARCH_OPTIONS[searchType].toLowerCase()} search.
                       </div>
                     )}
                   </>
                 )}
 
-              {/* CATEGORY VIEW */}
-              {!normalizedSearch && !activeCategory && (
-                <>
-                  <h2 className="text-2xl font-semibold text-center mb-8 tracking-wide">
-                    Explore Categories
-                  </h2>
+                {/* CATEGORY VIEW */}
+                {!normalizedSearch && !activeCategory && (
+                  <>
+                    <h2 className="text-2xl font-semibold text-center mb-8 tracking-wide">
+                      Explore Categories
+                    </h2>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                    {[...new Set(products.map((p) => p.category))].map((cat) => {
-                      const sample = products.find((p) => p.category === cat);
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                      {[...new Set(products.map((p) => p.category))].map(
+                        (cat) => {
+                          const sample = products.find(
+                            (p) => p.category === cat,
+                          );
 
-                      return (
-                        <div
-                          key={cat}
-                          onClick={() => {
-                            setActiveCategory(cat);
-                            setCategorySort("featured");
-                          }}
-                          className="group relative rounded-2xl overflow-hidden cursor-pointer bg-gray-200 hover:scale-105 transition duration-300"
+                          return (
+                            <div
+                              key={cat}
+                              onClick={() => {
+                                setActiveCategory(cat);
+                                setCategorySort("featured");
+                              }}
+                              className="group relative rounded-2xl overflow-hidden cursor-pointer bg-gray-200 hover:scale-105 transition duration-300"
+                            >
+                              <img
+                                src={sample?.image}
+                                alt={cat}
+                                className="w-full aspect-[4/3] object-cover"
+                              />
+
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+
+                              <div className="absolute bottom-4 left-4 text-white">
+                                <p className="text-xs uppercase opacity-80">
+                                  Furniture
+                                </p>
+                                <h3 className="text-xl font-bold">{cat}</h3>
+                              </div>
+                            </div>
+                          );
+                        },
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* PRODUCT VIEW */}
+                {!normalizedSearch && activeCategory && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setActiveCategory(null);
+                        setCategorySort("featured");
+                      }}
+                      className="mb-6 text-sm text-gray-600 hover:underline"
+                    >
+                      ← Back to Categories
+                    </button>
+
+                    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                      <div>
+                        <h2 className="text-2xl font-semibold">
+                          {activeCategory}
+                        </h2>
+                        <p className="text-sm text-gray-500">
+                          {categoryProducts.length} product
+                          {categoryProducts.length === 1 ? "" : "s"} in this
+                          category
+                        </p>
+                      </div>
+
+                      <label className="flex flex-col text-sm text-gray-600">
+                        Sort by
+                        <select
+                          value={categorySort}
+                          onChange={(event) =>
+                            setCategorySort(event.target.value)
+                          }
+                          className="mt-1 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-800 outline-none transition focus:border-black"
                         >
-                          <img
-                            src={sample?.image}
-                            alt={cat}
-                            className="w-full aspect-[4/3] object-cover"
-                          />
-
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-
-                          <div className="absolute bottom-4 left-4 text-white">
-                            <p className="text-xs uppercase opacity-80">
-                              Furniture
-                            </p>
-                            <h3 className="text-xl font-bold">{cat}</h3>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-
-              {/* PRODUCT VIEW */}
-              {!normalizedSearch && activeCategory && (
-                <>
-                  <button
-                    onClick={() => {
-                      setActiveCategory(null);
-                      setCategorySort("featured");
-                    }}
-                    className="mb-6 text-sm text-gray-600 hover:underline"
-                  >
-                    ← Back to Categories
-                  </button>
-
-                  <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <h2 className="text-2xl font-semibold">
-                        {activeCategory}
-                      </h2>
-                      <p className="text-sm text-gray-500">
-                        {categoryProducts.length} product
-                        {categoryProducts.length === 1 ? "" : "s"} in this
-                        category
-                      </p>
+                          {SORT_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
                     </div>
 
-                    <label className="flex flex-col text-sm text-gray-600">
-                      Sort by
-                      <select
-                        value={categorySort}
-                        onChange={(event) => setCategorySort(event.target.value)}
-                        className="mt-1 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-800 outline-none transition focus:border-black"
-                      >
-                        {SORT_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {categoryProducts.map((product) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                      {categoryProducts.map((product) => (
                         <ProductCard
                           key={product._id}
                           product={product}
@@ -569,15 +587,14 @@ function App() {
                           phoneNumber={phoneNumber}
                         />
                       ))}
-                  </div>
-                </>
-              )}
+                    </div>
+                  </>
+                )}
               </div>
 
               <div ref={footerRef}>
                 <Footer settings={settings} />
               </div>
-
             </div>
 
             <WhatsAppButton phone={phoneNumber} />
@@ -586,10 +603,7 @@ function App() {
       />
 
       {/* ================= PRODUCT DETAIL ================= */}
-      <Route
-        path="/product/:id"
-        element={<ProductDetail />}
-      />
+      <Route path="/product/:id" element={<ProductDetail />} />
 
       <Route
         path="/login"
@@ -602,7 +616,6 @@ function App() {
           />
         }
       />
-
     </Routes>
   );
 }

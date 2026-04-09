@@ -56,7 +56,9 @@ const getSearchMatch = (product, searchQuery, searchType) => {
   };
 
   const values = checks[searchType] || checks.all;
-  return values.find((item) => item.value.toLowerCase().includes(query)) || null;
+  return (
+    values.find((item) => item.value.toLowerCase().includes(query)) || null
+  );
 };
 
 function ProductCard({
@@ -68,34 +70,30 @@ function ProductCard({
   searchQuery = "",
   searchType = "all",
 }) {
-const [now, setNow] = useState(Date.now());
-const offerExpiryTime = product.offer?.expiresAt
-  ? new Date(product.offer.expiresAt).getTime()
-  : null;
-const isOfferArchived =
-  offerExpiryTime && !Number.isNaN(offerExpiryTime)
-    ? now >= offerExpiryTime + OFFER_GRACE_PERIOD_MS
-    : false;
-const shouldShowOffer = Boolean(product.offer?.isOffer && !isOfferArchived);
-const shouldShowLabel = Boolean(
-  product.label && !(product.label === "Offer" && !shouldShowOffer)
-);
-const finalPrice = shouldShowOffer
-  ? product.offer.offerPrice
-  : product.price;
-const woodTypeLabel = formatWoodTypes(product.woodType);
-const searchMatch = getSearchMatch(product, searchQuery, searchType);
+  const [now, setNow] = useState(() => Date.now());
+  const offerExpiryTime = product.offer?.expiresAt
+    ? new Date(product.offer.expiresAt).getTime()
+    : null;
+  const isOfferArchived =
+    offerExpiryTime && !Number.isNaN(offerExpiryTime)
+      ? now >= offerExpiryTime + OFFER_GRACE_PERIOD_MS
+      : false;
+  const shouldShowOffer = Boolean(product.offer?.isOffer && !isOfferArchived);
+  const shouldShowLabel = Boolean(
+    product.label && !(product.label === "Offer" && !shouldShowOffer),
+  );
+  const finalPrice = shouldShowOffer ? product.offer.offerPrice : product.price;
+  const woodTypeLabel = formatWoodTypes(product.woodType);
+  const searchMatch = getSearchMatch(product, searchQuery, searchType);
 
-
-  
-const message = `
+  const message = `
 Hi,
 
 I'm interested in this product:
 
 - Name: ${product.name}
 - Price: ₹${finalPrice}
-${product.offer?.isOffer ? `- Original Price: ₹${product.offer.originalPrice}` : ""}
+${shouldShowOffer ? `- Original Price: Rs.${product.offer.originalPrice}` : ""}
 - Wood Type: ${woodTypeLabel}
 
 Image: ${product.image}
@@ -107,19 +105,18 @@ ${window.location.origin}/product/${product._id}
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
   const navigate = useNavigate();
 
-
   useEffect(() => {
-  const img = new Image();
-  img.src = product.image;
+    const img = new Image();
+    img.src = product.image;
 
-  img.onload = () => {
-    if (img.width > img.height) {
-      setIsWide(true);   // landscape
-    } else {
-      setIsWide(false);  // portrait
-    }
-  };
-}, [product.image]);
+    img.onload = () => {
+      if (img.width > img.height) {
+        setIsWide(true); // landscape
+      } else {
+        setIsWide(false); // portrait
+      }
+    };
+  }, [product.image]);
 
   useEffect(() => {
     if (!product.offer?.expiresAt) {
@@ -134,61 +131,67 @@ ${window.location.origin}/product/${product._id}
   }, [product.offer?.expiresAt]);
 
   return (
-   <div
- 
-   
-   className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition duration-300 group">
-
+    <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition duration-300 group">
       {/* IMAGE */}
-  <div
-    onClick={() => navigate(`/product/${product._id}`)}
-   className="relative overflow-hidden">
-  
-  <div
-    className={`w-full overflow-hidden bg-gray-100
+      <div
+        onClick={() => navigate(`/product/${product._id}`)}
+        className="relative overflow-hidden"
+      >
+        <div
+          className={`w-full overflow-hidden bg-gray-100
       ${isWide ? "aspect-[16/9]" : "aspect-[4/5]"}`}
-  >
-  {shouldShowOffer && (
-  <span className="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded shadow">
-  {Math.round(
-  ((product.offer.originalPrice - product.offer.offerPrice) /
-    product.offer.originalPrice) * 100
-)}% OFF
-  </span>
-)}
+        >
+          {shouldShowOffer && (
+            <span className="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded shadow">
+              {Math.round(
+                ((product.offer.originalPrice - product.offer.offerPrice) /
+                  product.offer.originalPrice) *
+                  100,
+              )}
+              % OFF
+            </span>
+          )}
 
-  <img
-  src={product.image}
-  alt={product.name}
-  className={`w-full h-full object-cover
+          <img
+            src={product.image}
+            alt={product.name}
+            className={`w-full h-full object-cover
     ${product.imagePosition === "top" ? "object-top" : "object-center"}
     group-hover:scale-105 transition duration-300`}
-/>
+          />
 
-{shouldShowOffer &&
-  (product.offer?.offerText || (
-    <>
-      {Math.round(
-        ((product.offer.originalPrice - product.offer.offerPrice) /
-          product.offer.originalPrice) * 100
-      )}% OFF
-    </>
-  ))}
-  </div>
-  {shouldShowLabel && (
-    <span className={`absolute top-3 left-3 text-xs px-3 py-1 rounded-full text-white
-      ${product.label === "Offer" ? "bg-red-500" :
-        product.label === "New" ? "bg-green-500" :
-        product.label === "Best Seller" ? "bg-blue-500" :
-        "bg-yellow-500 text-black"}`}>
-      {product.label}
-    </span>
-  )}
-</div>
+          {shouldShowOffer &&
+            (product.offer?.offerText || (
+              <>
+                {Math.round(
+                  ((product.offer.originalPrice - product.offer.offerPrice) /
+                    product.offer.originalPrice) *
+                    100,
+                )}
+                % OFF
+              </>
+            ))}
+        </div>
+        {shouldShowLabel && (
+          <span
+            className={`absolute top-3 left-3 text-xs px-3 py-1 rounded-full text-white
+      ${
+        product.label === "Offer"
+          ? "bg-red-500"
+          : product.label === "New"
+            ? "bg-green-500"
+            : product.label === "Best Seller"
+              ? "bg-blue-500"
+              : "bg-yellow-500 text-black"
+      }`}
+          >
+            {product.label}
+          </span>
+        )}
+      </div>
 
       {/* CONTENT */}
       <div className="p-4">
-
         {/* TITLE */}
         <h3 className="text-lg font-semibold text-gray-800">
           {searchMatch?.label === "Product"
@@ -203,7 +206,8 @@ ${window.location.origin}/product/${product._id}
 
         {searchMatch && (
           <p className="mt-2 text-xs font-medium text-amber-700">
-            Matched in {searchMatch.label}: {highlightText(searchMatch.value, searchQuery)}
+            Matched in {searchMatch.label}:{" "}
+            {highlightText(searchMatch.value, searchQuery)}
           </p>
         )}
 
@@ -216,33 +220,27 @@ ${window.location.origin}/product/${product._id}
         </p>
 
         {/* PRICE */}
-       <div className="mt-2">
+        <div className="mt-2">
+          {shouldShowOffer ? (
+            <div>
+              {/* OFFER PRICE */}
+              <p className="text-xl font-bold text-green-600">
+                ₹{product.offer.offerPrice}
+              </p>
 
-  {shouldShowOffer ? (
-    <div>
-
-      {/* OFFER PRICE */}
-      <p className="text-xl font-bold text-green-600">
-        ₹{product.offer.offerPrice}
-      </p>
-
-      {/* ORIGINAL PRICE */}
-      <p className="text-sm text-gray-400 line-through">
-        ₹{product.offer.originalPrice}
-      </p>
-
-    </div>
-  ) : (
-    <p className="text-xl font-bold text-green-600">
-      ₹{product.price}
-    </p>
-  )}
-
-</div>
+              {/* ORIGINAL PRICE */}
+              <p className="text-sm text-gray-400 line-through">
+                ₹{product.offer.originalPrice}
+              </p>
+            </div>
+          ) : (
+            <p className="text-xl font-bold text-green-600">₹{product.price}</p>
+          )}
+        </div>
 
         {/* BUTTON */}
         <a
-  onClick={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
           href={whatsappLink}
           target="_blank"
           rel="noopener noreferrer"
@@ -275,3 +273,4 @@ ${window.location.origin}/product/${product._id}
 }
 
 export default ProductCard;
+

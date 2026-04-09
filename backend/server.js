@@ -19,12 +19,10 @@ app.use("/api/auth", authRoutes);
 const productRoutes = require("./routes/productRoutes");
 app.use("/api/products", productRoutes);
 
-
 // Test route
 app.get("/", (req, res) => {
   res.send("HOMLY DEALS API is running...");
 });
-
 
 // Port from .env
 const PORT = process.env.PORT || 5000;
