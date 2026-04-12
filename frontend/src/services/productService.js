@@ -16,7 +16,13 @@ export const createProduct = async (productData) => {
     body: JSON.stringify(productData),
   });
 
-  return res.json();
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to create product");
+  }
+
+  return data;
 };
 
 export const deleteProduct = async (id) => {
@@ -28,6 +34,10 @@ export const deleteProduct = async (id) => {
       Authorization: `Bearer ${token}`,
     },
   });
+  if (!res.ok) {
+  const data = await res.json();
+  throw new Error(data.message || "Unauthorized");
+}
 
   return res.json();
 };
@@ -43,6 +53,10 @@ export const updateProduct = async (id, data) => {
     },
     body: JSON.stringify(data),
   });
+if (!res.ok) {
+  const data = await res.json();
+  throw new Error(data.message || "Unauthorized");
+}
 
   return res.json();
 };

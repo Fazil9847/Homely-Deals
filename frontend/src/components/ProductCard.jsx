@@ -76,7 +76,23 @@ function ProductCard({
 }) {
   const [now, setNow] = useState(() => Date.now());
   const [isWide, setIsWide] = useState(false);
+  const [waLoading, setWaLoading] = useState(false);
   const navigate = useNavigate();
+  const handleWhatsAppClick = (e) => {
+  e.stopPropagation();
+
+  setWaLoading(true);
+
+  try {
+    window.open(whatsappLink, "_blank");
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setTimeout(() => {
+      setWaLoading(false);
+    }, 800);
+  }
+};
 
   const offerExpiryTime = product.offer?.expiresAt
     ? new Date(product.offer.expiresAt).getTime()
@@ -252,15 +268,13 @@ function ProductCard({
           )}
         </div>
 
-        <a
-          onClick={(e) => e.stopPropagation()}
-          href={whatsappLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 block rounded-lg bg-green-500 py-2 text-center text-white transition hover:bg-green-600"
-        >
-          Enquire on WhatsApp
-        </a>
+       <button
+  onClick={handleWhatsAppClick}
+  disabled={waLoading}
+  className="mt-4 block w-full rounded-lg bg-green-500 py-2 text-center text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-70"
+>
+  {waLoading ? "Opening WhatsApp..." : "Enquire on WhatsApp"}
+</button>
      <button
   onClick={(e) => {
     e.stopPropagation();

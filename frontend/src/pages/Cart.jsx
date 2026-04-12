@@ -35,6 +35,7 @@ const buildOrderLines = (cart) =>
 function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
   const navigate = useNavigate();
   const [now, setNow] = useState(() => Date.now());
+  const [waLoading, setWaLoading] = useState(false);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -66,6 +67,22 @@ function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
   ].join("\n");
 
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+  const handleWhatsAppOrder = () => {
+  if (waLoading || totalItems <= 0) return;
+
+  setWaLoading(true);
+
+  try {
+    window.open(whatsappLink, "_blank");
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setTimeout(() => {
+      setWaLoading(false);
+    }, 900);
+  }
+};
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -225,18 +242,19 @@ function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
                   </div>
                 </div>
 
-                <a
-                  href={whatsappLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`mt-6 block rounded-2xl px-5 py-3 text-center text-sm font-semibold text-white transition ${
-                    totalItems > 0
-                      ? "bg-green-500 hover:bg-green-600"
-                      : "pointer-events-none bg-gray-300"
-                  }`}
-                >
-                  Send order on WhatsApp
-                </a>
+       <button
+  onClick={handleWhatsAppOrder}
+  disabled={waLoading || totalItems <= 0}
+  className={`mt-6 block w-full rounded-2xl px-5 py-3 text-center text-sm font-semibold text-white transition ${
+    totalItems > 0
+      ? "bg-green-500 hover:bg-green-600"
+      : "bg-gray-300"
+  } disabled:cursor-not-allowed disabled:opacity-70`}
+>
+  {waLoading
+    ? "Preparing Order..."
+    : "Send order on WhatsApp"}
+</button>
 
                 <button
                   onClick={clearCart}

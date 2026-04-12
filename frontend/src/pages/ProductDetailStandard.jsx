@@ -26,6 +26,7 @@ function ProductDetailStandard() {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loadError, setLoadError] = useState("");
   const [now, setNow] = useState(() => Date.now());
+  const [waLoading, setWaLoading] = useState(false);
   const thumbnailScrollerRef = useRef(null);
 
   useEffect(() => {
@@ -193,6 +194,22 @@ function ProductDetailStandard() {
   const whatsappLink = `https://wa.me/${phone}?text=${encodeURIComponent(
     enquiryMessage,
   )}`;
+
+  const handleWhatsAppClick = () => {
+  if (waLoading) return;
+
+  setWaLoading(true);
+
+  try {
+    window.open(whatsappLink, "_blank");
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setTimeout(() => {
+      setWaLoading(false);
+    }, 900);
+  }
+};
 
   const scrollThumbnailStrip = (direction) => {
     const container = thumbnailScrollerRef.current;
@@ -428,14 +445,15 @@ function ProductDetailStandard() {
             </div>
 
             <div className="mt-auto pt-2">
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-green-600 px-6 py-3.5 text-base font-medium text-white shadow-lg shadow-green-600/20 transition hover:-translate-y-0.5 hover:bg-green-700"
-              >
-                Enquire on WhatsApp
-              </a>
+            <button
+  onClick={handleWhatsAppClick}
+  disabled={waLoading}
+  className="inline-flex w-full items-center justify-center rounded-2xl bg-green-600 px-6 py-3.5 text-base font-medium text-white shadow-lg shadow-green-600/20 transition hover:-translate-y-0.5 hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-70"
+>
+  {waLoading
+    ? "Opening WhatsApp..."
+    : "Enquire on WhatsApp"}
+</button>
             </div>
           </section>
         </div>

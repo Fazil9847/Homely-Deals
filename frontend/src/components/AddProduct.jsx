@@ -53,6 +53,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
   const [uploading, setUploading] = useState(false);
   const [previewIsWide, setPreviewIsWide] = useState(false);
   const [offerExpires, setOfferExpires] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const finalCategory =
     form.category === "Other" ? customCategory : form.category;
@@ -167,11 +168,14 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
     setOfferText("");
     setOfferExpires("");
   };
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  if (submitting) return;
 
-    try {
+  
+
+  try {
       const finalWoodTypes = getFinalWoodTypes();
 
       if (!form.name || !form.price || !finalCategory) {
@@ -183,6 +187,10 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
         alert("Please enter the other wood type");
         return;
       }
+
+
+      setSubmitting(true);
+
 
       const payload = {
         ...form,
@@ -205,15 +213,20 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
       if (editingProduct) {
         await onUpdate(editingProduct._id, payload);
       } else {
-        const data = await createProduct(payload);
-        onProductAdded(data);
+     const data = await createProduct(payload);
+console.log(data);
+
+onProductAdded(data.product || data);
       }
 
       resetForm();
     } catch (error) {
-      console.error(error);
-    }
-  };
+    console.error(error);
+    alert(error.message || "Failed to add product");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleGalleryUpload = async (e) => {
     const files = e.target.files;
@@ -450,6 +463,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
               <input
                 type="file"
                 onChange={handleImageUpload}
+                disabled={submitting}
                 className="w-full text-sm"
               />
               {uploading && (
@@ -500,6 +514,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
                 type="file"
                 multiple
                 onChange={handleGalleryUpload}
+                disabled={submitting}
                 className="w-full text-sm"
               />
 
@@ -516,6 +531,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
                       <button
                         type="button"
                         onClick={() => removeGalleryImage(i)}
+                        disabled={submitting}
                         className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
                       >
                         x
@@ -593,14 +609,18 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
 
       <button
         type="submit"
-        disabled={uploading}
+       disabled={uploading || submitting}
         className="mt-6 w-full rounded-lg bg-black py-3 text-white hover:bg-gray-800 disabled:opacity-50"
       >
-        {uploading
-          ? "Uploading Image..."
-          : editingProduct
-            ? "Update Product"
-            : "Add Product"}
+       {submitting
+  ? editingProduct
+    ? "Updating Product..."
+    : "Adding Product..."
+  : uploading
+    ? "Uploading Image..."
+    : editingProduct
+      ? "Update Product"
+      : "Add Product"}
       </button>
     </form>
   );
