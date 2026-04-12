@@ -209,7 +209,7 @@ function Footer({ settings }) {
         </div>
 
         <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-5 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} All rights reserved</p>
+          <p>&copy; {new Date().getFullYear()} All rights reserved</p>
           <p>Designed for smooth furniture enquiries and direct contact.</p>
         </div>
       </div>
