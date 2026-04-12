@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 
 import ProductCard from "../components/ProductCard";
 import AddProduct from "../components/AddProduct";
@@ -883,50 +883,32 @@ function HomePage({
                             p.category ===
                             cat
                         );
+return (
+  <Link
+    key={cat}
+    to={`/category/${encodeURIComponent(cat)}`}
+    onClick={() => setCategorySort("featured")}
+    className="group relative rounded-2xl overflow-hidden cursor-pointer bg-gray-200 hover:scale-105 transition duration-300"
+  >
+    <img
+      src={sample?.image}
+      alt={cat}
+      className="w-full aspect-[4/3] object-cover"
+    />
 
-                      return (
-                        <div
-                          key={
-                            cat
-                          }
-                          onClick={() => {
-                            navigate(
-                              `/category/${encodeURIComponent(
-                                cat
-                              )}`
-                            );
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
 
-                            setCategorySort(
-                              "featured"
-                            );
-                          }}
-                          className="group relative rounded-2xl overflow-hidden cursor-pointer bg-gray-200 hover:scale-105 transition duration-300"
-                        >
-                          <img
-                            src={
-                              sample?.image
-                            }
-                            alt={
-                              cat
-                            }
-                            className="w-full aspect-[4/3] object-cover"
-                          />
+    <div className="absolute bottom-4 left-4 text-white">
+      <p className="text-xs uppercase opacity-80">
+        Furniture
+      </p>
 
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-
-                          <div className="absolute bottom-4 left-4 text-white">
-                            <p className="text-xs uppercase opacity-80">
-                              Furniture
-                            </p>
-
-                            <h3 className="text-xl font-bold">
-                              {
-                                cat
-                              }
-                            </h3>
-                          </div>
-                        </div>
-                      );
+      <h3 className="text-xl font-bold">
+        {cat}
+      </h3>
+    </div>
+  </Link>
+);
                     }
                   )}
                 </div>
