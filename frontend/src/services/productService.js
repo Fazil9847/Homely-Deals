@@ -1,11 +1,13 @@
+import { API_URL } from "../config";
+
 export const getProducts = async () => {
-  const res = await fetch("http://localhost:5000/api/products");
+  const res = await fetch(`${API_URL}/api/products`);
   return res.json();
 };
 export const createProduct = async (productData) => {
   const token = localStorage.getItem("token");
 
-  const res = await fetch("http://localhost:5000/api/products", {
+  const res = await fetch(`${API_URL}/api/products`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -20,7 +22,7 @@ export const createProduct = async (productData) => {
 export const deleteProduct = async (id) => {
   const token = localStorage.getItem("token");
 
-  const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+  const res = await fetch(`${API_URL}/api/products/${id}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -33,7 +35,7 @@ export const deleteProduct = async (id) => {
 export const updateProduct = async (id, data) => {
   const token = localStorage.getItem("token");
 
-  const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+  const res = await fetch(`${API_URL}/api/products/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -46,6 +48,6 @@ export const updateProduct = async (id, data) => {
 };
 
 export const getProductById = async (id) => {
-  const res = await fetch(`http://localhost:5000/api/products/${id}`);
+  const res = await fetch(`${API_URL}/api/products/${id}`);
   return res.json();
 };

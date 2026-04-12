@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createProduct } from "../services/productService";
 import { normalizeWoodTypes, WOOD_TYPE_OPTIONS } from "../utils/productUtils";
+import { API_URL } from "../config";
 
 const CATEGORY_OPTIONS = ["Chair", "Table", "Sofa", "Bed", "Other"];
 const AVAILABILITY_OPTIONS = [
@@ -228,7 +229,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
         const formData = new FormData();
         formData.append("image", file);
 
-        const res = await fetch("http://localhost:5000/api/upload", {
+        const res = await fetch(`${API_URL}/api/upload`, {
           method: "POST",
           body: formData,
         });
@@ -263,7 +264,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
       const formData = new FormData();
       formData.append("image", file);
 
-      const res = await fetch("http://localhost:5000/api/upload", {
+      const res = await fetch(`${API_URL}/api/upload`, {
         method: "POST",
         body: formData,
       });
