@@ -16,7 +16,12 @@ const getDiscountPercent = (originalPrice, offerPrice) => {
   return Math.round(((originalPrice - offerPrice) / originalPrice) * 100);
 };
 
-function ProductDetailStandard() {
+function ProductDetailStandard({
+  wishlist,
+  toggleWishlist,
+  cart,
+  addToCart,
+}){
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
@@ -471,12 +476,16 @@ function ProductDetailStandard() {
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
               {relatedProducts.map((item) => (
-                <ProductCard
-                  key={item._id}
-                  product={item}
-                  isLoggedIn={false}
-                  phoneNumber={phone}
-                />
+              <ProductCard
+  key={item._id}
+  product={item}
+  isLoggedIn={false}
+  phoneNumber={phone}
+  wishlist={wishlist}
+  toggleWishlist={toggleWishlist}
+  cart={cart}
+  addToCart={addToCart}
+/>
               ))}
             </div>
           </section>

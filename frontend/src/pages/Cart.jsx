@@ -140,12 +140,12 @@ function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
                     className="overflow-hidden rounded-3xl bg-white shadow-sm"
                   >
                     <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
-                      <div className="h-24 w-full overflow-hidden rounded-2xl bg-slate-100 sm:w-28">
+                     <div className="h-28 w-full overflow-hidden rounded-2xl bg-slate-100 sm:h-24 sm:w-28 lg:h-24 lg:w-28">
                         {item.image ? (
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="h-full w-full object-cover"
+                              className="h-full w-full object-contain p-2 sm:object-cover sm:p-0"
                           />
                         ) : null}
                       </div>

@@ -151,12 +151,17 @@ useEffect(() => {
           />
         }
       />
-
-      <Route
-        path="/product/:id"
-        element={<ProductDetail />}
-      />
-
+<Route
+  path="/product/:id"
+  element={
+    <ProductDetail
+      wishlist={wishlist}
+      toggleWishlist={toggleWishlist}
+      cart={cart}
+      addToCart={addToCart}
+    />
+  }
+/>
       <Route
         path="/login"
         element={

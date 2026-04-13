@@ -88,16 +88,16 @@ function Header({
     <header
       className={`fixed left-1/2 top-4 z-40 w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 border border-white/70 bg-white/90 backdrop-blur transition-all duration-300 ${
         isScrolled
-          ? "rounded-2xl px-4 py-3 shadow-[0_14px_38px_rgba(15,23,42,0.14)]"
-          : "rounded-3xl px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.16)]"
+          ? "rounded-2xl px-3 py-2 sm:px-4 sm:py-4 shadow-[0_14px_38px_rgba(15,23,42,0.14)]"
+          : "rounded-xl px-3 py-2 sm:rounded-2xl sm:px-4 sm:py-3 shadow-[0_18px_50px_rgba(15,23,42,0.16)]"
       } ${isHeaderVisible ? "translate-y-0 opacity-100" : "-translate-y-24 opacity-0"}`}
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-row items-center justify-between gap-2 flex-wrap lg:flex-row">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="logo" className="h-14 w-14 object-contain" />
+          <img src={logo} alt="logo" className="h-10 w-10 sm:h-14 sm:w-14 object-contain" />
 
           <div>
-            <h1 className="text-lg font-bold tracking-wide sm:text-xl">
+            <h1 className="text-base sm:text-xl font-bold tracking-wide">
               {settings?.shopName || "HOMLY DEALS"}
             </h1>
             <p className="text-sm text-gray-500">Furniture and home deals</p>
