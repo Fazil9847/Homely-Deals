@@ -174,16 +174,18 @@ useEffect(() => {
         }
       />
 
-      <Route
-        path="/wishlist"
-        element={
-       <Wishlist
-  wishlist={wishlist}
-  toggleWishlist={toggleWishlist}
-  phoneNumber={phoneNumber}
+   <Route
+  path="/wishlist"
+  element={
+    <Wishlist
+      wishlist={wishlist}
+      toggleWishlist={toggleWishlist}
+      phoneNumber={phoneNumber}
+      addToCart={addToCart}
+      cart={cart}
+    />
+  }
 />
-        }
-      />
 
       <Route
         path="/cart"

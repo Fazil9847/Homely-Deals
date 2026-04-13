@@ -57,32 +57,33 @@ function Header({
       searchInputRef.current?.focus();
     }
   }, [isSearchOpen]);
+useEffect(() => {
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+    const diff = currentScrollY - lastScrollYRef.current;
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+    setIsScrolled(currentScrollY > 20);
 
-      setIsScrolled(currentScrollY > 24);
+    if (currentScrollY <= 20) {
+      setIsHeaderVisible(true);
+    } else if (diff > 12) {
+      // scrolling down enough
+      setIsHeaderVisible(false);
+    } else if (diff < -6) {
+      // scrolling up slightly
+      setIsHeaderVisible(true);
+    }
 
-      if (currentScrollY <= 24) {
-        setIsHeaderVisible(true);
-      } else if (currentScrollY < lastScrollYRef.current) {
-        setIsHeaderVisible(true);
-      } else if (currentScrollY > lastScrollYRef.current + 8) {
-        setIsHeaderVisible(false);
-        setIsFilterMenuOpen(false);
-        setIsNavMenuOpen(false);
-      }
+    lastScrollYRef.current = currentScrollY;
+  };
 
-      lastScrollYRef.current = currentScrollY;
-    };
+  window.addEventListener("scroll", handleScroll, {
+    passive: true,
+  });
 
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
+  return () =>
+    window.removeEventListener("scroll", handleScroll);
+}, []);
   
   return (
     <header
@@ -96,15 +97,15 @@ function Header({
         <div className="flex items-center gap-3">
           <img src={logo} alt="logo" className="h-10 w-10 sm:h-14 sm:w-14 object-contain" />
 
-          <div>
-            <h1 className="text-base sm:text-xl font-bold tracking-wide">
+         <div className="min-w-0">
+           <h1 className="truncate text-base sm:text-xl font-bold tracking-wide">
               {settings?.shopName || "HOMLY DEALS"}
             </h1>
-            <p className="text-sm text-gray-500">Furniture and home deals</p>
+           <p className="text-xs sm:text-sm text-gray-500">Furniture and home deals</p>
           </div>
         </div>
 
-        <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[640px] lg:flex-row lg:items-center lg:justify-end">
+        <div className="flex items-center gap-2 sm:gap-3 lg:min-w-[640px] lg:w-auto lg:justify-end">
           {isSearchOpen ? (
             <form
               ref={searchAreaRef}
@@ -224,7 +225,7 @@ function Header({
                 setIsFilterMenuOpen(false);
                 setIsNavMenuOpen(false);
               }}
-              className="self-start rounded-full border border-gray-300 bg-white p-2.5 text-gray-700 transition hover:bg-gray-100 lg:self-auto"
+              className="self-start rounded-full border border-gray-300 bg-white p-2 sm:p-2.5 text-gray-700 transition hover:bg-gray-100 lg:self-auto"
             >
               <FiSearch className="text-lg" />
             </button>
@@ -238,7 +239,7 @@ function Header({
                 setIsNavMenuOpen((prev) => !prev);
                 setIsFilterMenuOpen(false);
               }}
-              className="rounded-full border border-gray-300 p-2 text-gray-700 transition hover:bg-gray-100"
+              className="rounded-full border border-gray-300 p-2 sm:p-2.5text-gray-700 transition hover:bg-gray-100"
             >
               <FiMoreHorizontal className="text-lg" />
             </button>

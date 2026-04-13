@@ -139,16 +139,16 @@ function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
                     key={item._id}
                     className="overflow-hidden rounded-3xl bg-white shadow-sm"
                   >
-                    <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
-                     <div className="h-28 w-full overflow-hidden rounded-2xl bg-slate-100 sm:h-24 sm:w-28 lg:h-24 lg:w-28">
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                              className="h-full w-full object-contain p-2 sm:object-cover sm:p-0"
-                          />
-                        ) : null}
-                      </div>
+                    <div className="flex flex-row gap-3 p-4 items-start sm:flex-row sm:items-center sm:p-5">
+                <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:h-24 sm:w-28">
+  {item.image && (
+    <img
+      src={item.image}
+      alt={item.name}
+    className="h-full w-full object-cover object-center"
+    />
+  )}
+</div>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -178,7 +178,7 @@ function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
                           </div>
                         </div>
 
-                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <div className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-50 p-1">
                             <button
                               onClick={() => updateQty(item._id, item.qty - 1)}
