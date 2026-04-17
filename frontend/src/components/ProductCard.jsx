@@ -56,6 +56,7 @@ const getSearchMatch = (product, searchQuery, searchType) => {
   };
 
   const values = checks[searchType] || checks.all;
+
   return (
     values.find((item) => item.value.toLowerCase().includes(query)) || null
   );
@@ -71,40 +72,27 @@ function ProductCard({
   searchType = "all",
   wishlist,
   toggleWishlist,
-  addToCart  
-  
+  addToCart,
 }) {
   const [now, setNow] = useState(() => Date.now());
   const [isWide, setIsWide] = useState(false);
   const [waLoading, setWaLoading] = useState(false);
   const navigate = useNavigate();
-  const handleWhatsAppClick = (e) => {
-  e.stopPropagation();
-
-  setWaLoading(true);
-
-  try {
-    window.open(whatsappLink, "_blank");
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setTimeout(() => {
-      setWaLoading(false);
-    }, 800);
-  }
-};
 
   const offerExpiryTime = product.offer?.expiresAt
     ? new Date(product.offer.expiresAt).getTime()
     : null;
+
   const isOfferArchived =
     offerExpiryTime && !Number.isNaN(offerExpiryTime)
       ? now >= offerExpiryTime + OFFER_GRACE_PERIOD_MS
       : false;
+
   const shouldShowOffer = Boolean(product.offer?.isOffer && !isOfferArchived);
   const shouldShowLabel = Boolean(
     product.label && !(product.label === "Offer" && !shouldShowOffer),
   );
+
   const finalPrice = shouldShowOffer ? product.offer.offerPrice : product.price;
   const woodTypeLabel = formatWoodTypes(product.woodType);
   const searchMatch = getSearchMatch(product, searchQuery, searchType);
@@ -120,15 +108,31 @@ function ProductCard({
     shouldShowOffer ? `Original Price: Rs.${product.offer.originalPrice}` : null,
     "--------------------",
     "Links:",
-    `Image:`,
+    "Image:",
     product.image,
     "--------------------",
-    `Product Link:`,
+    "Product Link:",
     `${window.location.origin}/product/${product._id}`,
   ]
     .filter(Boolean)
     .join("\n");
+
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+  const handleWhatsAppClick = (event) => {
+    event.stopPropagation();
+    setWaLoading(true);
+
+    try {
+      window.open(whatsappLink, "_blank");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTimeout(() => {
+        setWaLoading(false);
+      }, 800);
+    }
+  };
 
   useEffect(() => {
     const img = new Image();
@@ -169,7 +173,7 @@ function ProductCard({
           : "bg-yellow-500 text-black";
 
   return (
-    <div className="group overflow-hidden rounded-2xl bg-white shadow-md transition duration-300 hover:shadow-xl">
+    <div className="group app-surface overflow-hidden transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(15,23,42,0.14)]">
       <div
         onClick={() => navigate(`/product/${product._id}`)}
         className="relative cursor-pointer overflow-hidden"
@@ -193,8 +197,8 @@ function ProductCard({
             )}
 
             <button
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 toggleWishlist(product);
               }}
               className={`pointer-events-auto flex h-10 min-w-10 items-center justify-center rounded-full px-3 shadow-md transition ${
@@ -222,14 +226,14 @@ function ProductCard({
         </div>
       </div>
 
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-800">
+      <div className="p-4 sm:p-5">
+        <h3 className="text-lg font-semibold text-slate-800">
           {searchMatch?.label === "Product"
             ? highlightText(product.name, searchQuery)
             : product.name}
         </h3>
 
-        <p className="mt-1 line-clamp-2 text-sm text-gray-500">
+        <p className="mt-1 line-clamp-2 text-sm text-slate-500">
           {product.description}
         </p>
 
@@ -240,7 +244,7 @@ function ProductCard({
           </p>
         )}
 
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-2 text-xs text-slate-400">
           Wood:{" "}
           {searchMatch?.label === "Wood Type"
             ? highlightText(searchMatch.value, searchQuery)
@@ -253,37 +257,37 @@ function ProductCard({
           </p>
         )}
 
-        <div className="mt-2">
+        <div className="mt-3">
           {shouldShowOffer ? (
             <div>
-              <p className="text-xl font-bold text-green-600">
+              <p className="text-xl font-bold text-emerald-600">
                 Rs.{product.offer.offerPrice}
               </p>
-              <p className="text-sm text-gray-400 line-through">
+              <p className="text-sm text-slate-400 line-through">
                 Rs.{product.offer.originalPrice}
               </p>
             </div>
           ) : (
-            <p className="text-xl font-bold text-green-600">Rs.{product.price}</p>
+            <p className="text-xl font-bold text-emerald-600">Rs.{product.price}</p>
           )}
         </div>
 
-       <button
-  onClick={handleWhatsAppClick}
-  disabled={waLoading}
-  className="mt-4 block w-full rounded-lg bg-green-500 py-2 text-center text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-70"
->
-  {waLoading ? "Opening WhatsApp..." : "Enquire on WhatsApp"}
-</button>
-     <button
-  onClick={(e) => {
-    e.stopPropagation();
-    addToCart?.(product);   // ✅ safe call
-  }}
-  className="mt-2 w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition"
->
-  🛒 Add to Cart
-</button>
+        <button
+          onClick={handleWhatsAppClick}
+          disabled={waLoading}
+          className="mt-4 block w-full rounded-xl bg-green-500 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {waLoading ? "Opening WhatsApp..." : "Enquire on WhatsApp"}
+        </button>
+        <button
+          onClick={(event) => {
+            event.stopPropagation();
+            addToCart?.(product);
+          }}
+          className="mt-2 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
+        >
+          Add to Cart
+        </button>
 
         {isLoggedIn && (
           <div className="mt-3 flex justify-between text-sm">

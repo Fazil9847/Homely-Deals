@@ -11,50 +11,48 @@ function Wishlist({
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-sm sm:flex-row sm:items-end sm:justify-between">
+        <div className="app-surface mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-gray-400">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-400">
               Saved Items
             </p>
 
-            <h1 className="mt-2 text-2xl font-semibold text-gray-900 sm:text-3xl">
-              ❤️ Your Wishlist
+            <h1 className="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
+              Your Wishlist
             </h1>
 
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-slate-500">
               Products you saved for later.
             </p>
           </div>
 
           <button
             onClick={() => navigate("/")}
-            className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:border-black hover:text-black"
+            className="app-pill"
           >
-            ← Back to Home
+            Back to Home
           </button>
         </div>
 
-        {/* Empty State */}
         {wishlist.length === 0 ? (
-          <div className="rounded-3xl bg-white px-6 py-16 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-2xl">
-              ❤️
+          <div className="app-surface px-6 py-16 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600">
+              SAVE
             </div>
 
-            <h2 className="mt-5 text-2xl font-semibold text-gray-900">
+            <h2 className="mt-5 text-2xl font-semibold text-slate-900">
               Wishlist is empty
             </h2>
 
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-slate-500">
               Save products you like and they will appear here.
             </p>
 
             <button
               onClick={() => navigate("/")}
-              className="mt-6 rounded-full bg-black px-6 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
+              className="mt-6 rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-700"
             >
               Browse Products
             </button>

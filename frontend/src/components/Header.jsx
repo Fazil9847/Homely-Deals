@@ -1,5 +1,14 @@
 import logo from "../assets/logo.png";
-import { FiChevronDown, FiMoreHorizontal, FiSearch } from "react-icons/fi";
+import {
+  FiChevronDown,
+  FiHeart,
+  FiMenu,
+  FiPackage,
+  FiPhone,
+  FiSearch,
+  FiShoppingBag,
+  FiUser,
+} from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
 
 const SEARCH_FILTERS = [
@@ -25,9 +34,9 @@ function Header({
   onContactClick,
   wishlistCount,
   onWishlistClick,
-   cartCount,       
-  onCartClick   
-})  {
+  cartCount,
+  onCartClick,
+}) {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
@@ -36,6 +45,7 @@ function Header({
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const searchInputRef = useRef(null);
   const searchAreaRef = useRef(null);
+  const menuAreaRef = useRef(null);
   const lastScrollYRef = useRef(0);
 
   const showSuggestions =
@@ -43,6 +53,7 @@ function Header({
   const activeFilter =
     SEARCH_FILTERS.find((filter) => filter.value === searchType) ||
     SEARCH_FILTERS[0];
+
   const searchPlaceholder =
     searchType === "all"
       ? "Search products, categories, wood types..."
@@ -57,55 +68,112 @@ function Header({
       searchInputRef.current?.focus();
     }
   }, [isSearchOpen]);
-useEffect(() => {
-  const handleScroll = () => {
-    const currentScrollY = window.scrollY;
-    const diff = currentScrollY - lastScrollYRef.current;
 
-    setIsScrolled(currentScrollY > 20);
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const diff = currentScrollY - lastScrollYRef.current;
 
-    if (currentScrollY <= 20) {
-      setIsHeaderVisible(true);
-    } else if (diff > 12) {
-      // scrolling down enough
-      setIsHeaderVisible(false);
-    } else if (diff < -6) {
-      // scrolling up slightly
-      setIsHeaderVisible(true);
-    }
+      setIsScrolled(currentScrollY > 16);
 
-    lastScrollYRef.current = currentScrollY;
-  };
+      if (currentScrollY <= 20) {
+        setIsHeaderVisible(true);
+      } else if (diff > 12) {
+        setIsHeaderVisible(false);
+      } else if (diff < -8) {
+        setIsHeaderVisible(true);
+      }
 
-  window.addEventListener("scroll", handleScroll, {
-    passive: true,
-  });
+      lastScrollYRef.current = currentScrollY;
+    };
 
-  return () =>
-    window.removeEventListener("scroll", handleScroll);
-}, []);
-  
+    window.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+
+    return () =>
+      window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      const target = event.target;
+
+      if (
+        !searchAreaRef.current?.contains(target) &&
+        !menuAreaRef.current?.contains(target)
+      ) {
+        setIsFilterMenuOpen(false);
+        setIsNavMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
+
+  const menuButtonClass =
+    "flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-slate-900 hover:text-slate-900";
+
+  const navItems = [
+    {
+      key: "products",
+      label: "Products",
+      icon: FiPackage,
+      onClick: onProductsClick,
+    },
+    {
+      key: "wishlist",
+      label: "Wishlist",
+      icon: FiHeart,
+      badge: wishlistCount > 0 ? wishlistCount : null,
+      onClick: onWishlistClick,
+    },
+    {
+      key: "cart",
+      label: "Cart",
+      icon: FiShoppingBag,
+      badge: cartCount > 0 ? cartCount : null,
+      onClick: onCartClick,
+    },
+    {
+      key: "contact",
+      label: "Contact",
+      icon: FiPhone,
+      onClick: onContactClick,
+    },
+  ];
+
   return (
     <header
-      className={`fixed left-1/2 top-4 z-40 w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 border border-white/70 bg-white/90 backdrop-blur transition-all duration-300 ${
+      className={`fixed left-1/2 top-4 z-40 w-[calc(100%-1.25rem)] max-w-6xl -translate-x-1/2 transition-all duration-300 ${
         isScrolled
-          ? "rounded-2xl px-3 py-2 sm:px-4 sm:py-4 shadow-[0_14px_38px_rgba(15,23,42,0.14)]"
-          : "rounded-xl px-3 py-2 sm:rounded-2xl sm:px-4 sm:py-3 shadow-[0_18px_50px_rgba(15,23,42,0.16)]"
+          ? "glass-surface rounded-2xl px-3 py-2 shadow-[0_14px_38px_rgba(15,23,42,0.14)] sm:px-4 sm:py-3"
+          : "glass-surface rounded-xl px-3 py-2 shadow-[0_18px_50px_rgba(15,23,42,0.16)] sm:rounded-2xl sm:px-4 sm:py-3"
       } ${isHeaderVisible ? "translate-y-0 opacity-100" : "-translate-y-24 opacity-0"}`}
     >
-      <div className="flex flex-row items-center justify-between gap-2 flex-wrap lg:flex-row">
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="logo" className="h-10 w-10 sm:h-14 sm:w-14 object-contain" />
+          <img
+            src={logo}
+            alt="logo"
+            className="h-10 w-10 object-contain sm:h-12 sm:w-12"
+          />
 
-         <div className="min-w-0">
-           <h1 className="truncate text-base sm:text-xl font-bold tracking-wide">
+          <div className="min-w-0">
+            <h1 className="truncate text-base font-extrabold tracking-wide text-slate-900 sm:text-xl">
               {settings?.shopName || "HOMLY DEALS"}
             </h1>
-           <p className="text-xs sm:text-sm text-gray-500">Furniture and home deals</p>
+            <p className="text-xs text-slate-500 sm:text-sm">
+              Furniture and home deals
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 lg:min-w-[640px] lg:w-auto lg:justify-end">
+        <div className="flex items-center gap-2 sm:gap-3">
           {isSearchOpen ? (
             <form
               ref={searchAreaRef}
@@ -113,7 +181,7 @@ useEffect(() => {
                 e.preventDefault();
                 onSearchSubmit();
               }}
-              className="flex w-full gap-2 lg:max-w-2xl"
+              className="flex w-full gap-2 md:w-[min(62vw,720px)]"
             >
               <div className="relative shrink-0">
                 <button
@@ -122,14 +190,14 @@ useEffect(() => {
                     setIsFilterMenuOpen((prev) => !prev);
                     setIsNavMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 transition hover:bg-gray-50"
+                  className="flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-800 transition hover:border-slate-400"
                 >
                   <span>{activeFilter.label}</span>
-                  <FiChevronDown className="text-sm text-gray-500" />
+                  <FiChevronDown className="text-sm text-slate-500" />
                 </button>
 
                 {isFilterMenuOpen && (
-                  <div className="absolute left-0 top-full z-30 mt-2 min-w-[170px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+                  <div className="absolute left-0 top-full z-30 mt-2 min-w-[170px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
                     {SEARCH_FILTERS.map((filter) => {
                       const isActive = searchType === filter.value;
 
@@ -143,13 +211,13 @@ useEffect(() => {
                           }}
                           className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition ${
                             isActive
-                              ? "bg-gray-100 font-medium text-black"
-                              : "text-gray-700 hover:bg-gray-50"
+                              ? "bg-slate-100 font-medium text-slate-900"
+                              : "text-slate-700 hover:bg-slate-50"
                           }`}
                         >
                           <span>{filter.label}</span>
                           {isActive && (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-slate-500">
                               Active
                             </span>
                           )}
@@ -185,29 +253,29 @@ useEffect(() => {
                     }, 150);
                   }}
                   placeholder={searchPlaceholder}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 pr-12 text-sm outline-none transition focus:border-black"
+                  className="h-11 w-full rounded-full border border-slate-200 bg-white px-4 pr-12 text-sm outline-none transition focus:border-slate-900"
                 />
                 <button
                   type="submit"
                   aria-label="Search"
-                  className="absolute right-1 top-1 rounded-md bg-black px-3 py-1.5 text-white transition hover:bg-gray-800"
+                  className="absolute right-1.5 top-1.5 rounded-full bg-slate-900 px-3 py-1.5 text-white transition hover:bg-slate-700"
                 >
                   <FiSearch className="text-base" />
                 </button>
 
                 {showSuggestions && (
-                  <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+                  <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
                     {searchSuggestions.map((suggestion) => (
                       <button
                         key={`${suggestion.kind}-${suggestion.value}`}
                         type="button"
                         onMouseDown={() => onSuggestionSelect(suggestion.value)}
-                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm transition hover:bg-gray-50"
+                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm transition hover:bg-slate-50"
                       >
-                        <span className="font-medium text-gray-800">
+                        <span className="font-medium text-slate-800">
                           {suggestion.value}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-slate-500">
                           {suggestion.kind}
                         </span>
                       </button>
@@ -225,13 +293,13 @@ useEffect(() => {
                 setIsFilterMenuOpen(false);
                 setIsNavMenuOpen(false);
               }}
-              className="self-start rounded-full border border-gray-300 bg-white p-2 sm:p-2.5 text-gray-700 transition hover:bg-gray-100 lg:self-auto"
+              className={menuButtonClass}
             >
               <FiSearch className="text-lg" />
             </button>
           )}
 
-          <div className="relative self-end lg:self-auto">
+          <div className="relative" ref={menuAreaRef}>
             <button
               type="button"
               aria-label="Open menu"
@@ -239,57 +307,37 @@ useEffect(() => {
                 setIsNavMenuOpen((prev) => !prev);
                 setIsFilterMenuOpen(false);
               }}
-              className="rounded-full border border-gray-300 p-2 sm:p-2.5text-gray-700 transition hover:bg-gray-100"
+              className={menuButtonClass}
             >
-              <FiMoreHorizontal className="text-lg" />
+              <FiMenu className="text-lg" />
             </button>
 
             {isNavMenuOpen && (
-              <div className="absolute right-0 top-full z-30 mt-2 min-w-[180px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
-                <button
-                  type="button"
-                  onMouseDown={() => {
-                    onProductsClick();
-                    setIsNavMenuOpen(false);
-                  }}
-                  className="block w-full px-4 py-3 text-left text-sm text-gray-700 transition hover:bg-gray-50"
-                >
-                  Products
-                </button>
-
-                               <button
-  type="button"
-  onMouseDown={() => {
-    onWishlistClick();
-    setIsNavMenuOpen(false);
-  }}
- className={`block w-full px-4 py-3 text-left text-sm transition hover:bg-gray-50 ${
-  wishlistCount > 0 ? "text-red-500 font-medium" : "text-gray-700"
-}`}
->
-  ❤️ Wishlist ({wishlistCount})
-</button>
-<button
-  onMouseDown={() => {
-    onCartClick();
-    setIsNavMenuOpen(false);
-  }}
-  className="block w-full px-4 py-3 text-left text-sm hover:bg-gray-50"
->
-  🛒 Cart {cartCount > 0 && `(${cartCount})`}
-</button>
-                <button
-                  type="button"
-                  onMouseDown={() => {
-                    onContactClick();
-                    setIsNavMenuOpen(false);
-                  }}
-                  className="block w-full px-4 py-3 text-left text-sm text-gray-700 transition hover:bg-gray-50"
-                >
-                  Contact
-                </button>
-
- 
+              <div className="absolute right-0 top-full z-30 mt-2 min-w-[220px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onMouseDown={() => {
+                        item.onClick();
+                        setIsNavMenuOpen(false);
+                      }}
+                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Icon className="text-base" />
+                        {item.label}
+                      </span>
+                      {item.badge ? (
+                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-900 px-1.5 text-[11px] font-semibold text-white">
+                          {item.badge}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
 
                 {isLoggedIn ? (
                   <button
@@ -298,8 +346,9 @@ useEffect(() => {
                       onLogout();
                       setIsNavMenuOpen(false);
                     }}
-                    className="block w-full px-4 py-3 text-left text-sm text-red-500 transition hover:bg-red-50"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-red-500 transition hover:bg-red-50"
                   >
+                    <FiUser className="text-base" />
                     Logout
                   </button>
                 ) : (
@@ -309,8 +358,9 @@ useEffect(() => {
                       onLoginClick();
                       setIsNavMenuOpen(false);
                     }}
-                    className="block w-full px-4 py-3 text-left text-sm text-gray-700 transition hover:bg-gray-50"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                   >
+                    <FiUser className="text-base" />
                     Admin Login
                   </button>
                 )}

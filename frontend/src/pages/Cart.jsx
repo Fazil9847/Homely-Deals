@@ -85,9 +85,9 @@ function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
 };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-sm sm:flex-row sm:items-end sm:justify-between">
+        <div className="app-surface mb-8 flex flex-col gap-4 p-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-400">
               Shopping Cart
@@ -100,16 +100,13 @@ function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
             </p>
           </div>
 
-          <button
-            onClick={() => navigate("/")}
-            className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
-          >
+          <button onClick={() => navigate("/")} className="app-pill">
             Continue shopping
           </button>
         </div>
 
         {cart.length === 0 ? (
-          <div className="rounded-3xl bg-white px-6 py-16 text-center shadow-sm">
+          <div className="app-surface px-6 py-16 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600">
               CART
             </div>
@@ -135,10 +132,7 @@ function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
                 const subtotal = unitPrice * item.qty;
 
                 return (
-                  <div
-                    key={item._id}
-                    className="overflow-hidden rounded-3xl bg-white shadow-sm"
-                  >
+                  <div key={item._id} className="app-surface overflow-hidden">
                     <div className="flex flex-row gap-3 p-4 items-start sm:flex-row sm:items-center sm:p-5">
                 <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:h-24 sm:w-28">
   {item.image && (
@@ -214,7 +208,7 @@ function Cart({ cart, updateQty, removeFromCart, clearCart, phoneNumber }) {
             </div>
 
             <aside className="lg:sticky lg:top-6 lg:self-start">
-              <div className="rounded-3xl bg-white p-6 shadow-sm">
+              <div className="app-surface p-6">
                 <h2 className="text-xl font-semibold text-slate-900">
                   Order summary
                 </h2>

@@ -1,3 +1,64 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+
+@layer base {
+  :root {
+    --page-bg-start: #f7f7f5;
+    --page-bg-end: #ecefef;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --surface: #ffffff;
+    --surface-border: #e2e8f0;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    color: var(--text-primary);
+    background:
+      radial-gradient(
+        circle at 0% 0%,
+        rgba(255, 217, 102, 0.18),
+        transparent 35%
+      ),
+      radial-gradient(
+        circle at 100% 10%,
+        rgba(74, 222, 128, 0.12),
+        transparent 28%
+      ),
+      linear-gradient(
+        165deg,
+        var(--page-bg-start) 0%,
+        var(--page-bg-end) 100%
+      );
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+}
+
+@layer utilities {
+  .glass-surface {
+    @apply border border-white/80 bg-white/85 backdrop-blur;
+  }
+
+  .app-surface {
+    @apply rounded-3xl border border-slate-200/80 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.08)];
+  }
+
+  .app-pill {
+    @apply inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900;
+  }
+}

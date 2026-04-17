@@ -503,8 +503,8 @@ function HomePage({
   /* ---------------- JSX ---------------- */
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-6xl mx-auto p-4">
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-6xl px-4 pb-8 pt-4 sm:px-6 lg:px-8 lg:pb-10">
 
         <Header
           settings={settings}
@@ -587,26 +587,29 @@ function HomePage({
           }
         />
 
-        <div className="h-36 sm:h-32 lg:h-28" />
+        <div className="h-32 sm:h-32 lg:h-28" />
 
         {/* HERO */}
-        <div className="relative rounded-2xl overflow-hidden mb-12 shadow-lg">
+        <div className="relative mb-12 overflow-hidden rounded-[1.75rem] border border-white/70 shadow-[0_20px_55px_rgba(15,23,42,0.18)]">
           <img
             src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85"
             alt="furniture"
             className="w-full h-[300px] md:h-[400px] object-cover"
           />
 
-          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/45 to-black/35"></div>
 
-          <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white px-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-3">
-              Premium Wooden Furniture
+          <div className="absolute inset-0 flex flex-col items-start justify-center px-6 text-left text-white sm:px-10">
+            <p className="mb-3 inline-flex rounded-full border border-white/35 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em]">
+              Crafted Collection
+            </p>
+            <h1 className="mb-3 max-w-xl text-3xl font-bold leading-tight md:text-5xl">
+              Premium Wooden Furniture For Modern Homes
             </h1>
 
-            <p className="text-sm md:text-lg opacity-90 mb-4">
-              Crafted with care.
-              Designed for life.
+            <p className="mb-5 max-w-md text-sm text-white/90 md:text-lg">
+              Crafted with care. Designed for life. Explore quality pieces with
+              direct enquiry support.
             </p>
 
             <button
@@ -615,7 +618,7 @@ function HomePage({
                   productsSectionRef
                 )
               }
-              className="bg-yellow-500 text-black px-6 py-2 rounded-full font-medium hover:bg-yellow-400 transition"
+              className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-amber-300 md:text-base"
             >
               Explore Collection
             </button>
@@ -653,10 +656,12 @@ function HomePage({
           0 &&
           !normalizedSearch && (
             <div className="mb-14">
-              <h2 className="text-2xl font-semibold mb-6">
-                🔥 Special
-                Offers
+              <h2 className="mb-2 text-2xl font-semibold text-slate-900">
+                Special Offers
               </h2>
+              <p className="mb-6 text-sm text-slate-500">
+                Limited-time pricing on selected furniture pieces.
+              </p>
 
               {offers.length <=
               3 ? (
@@ -856,10 +861,7 @@ function HomePage({
           {!normalizedSearch &&
             !activeCategory && (
               <>
-                <h2 className="text-2xl font-semibold text-center mb-8 tracking-wide">
-                  Explore
-                  Categories
-                </h2>
+                <h2 className="mb-8 text-center text-2xl font-semibold tracking-wide text-slate-900">`n                  Explore Categories`n                </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
                   {[
@@ -888,7 +890,7 @@ return (
     key={cat}
     to={`/category/${encodeURIComponent(cat)}`}
     onClick={() => setCategorySort("featured")}
-    className="group relative rounded-2xl overflow-hidden cursor-pointer bg-gray-200 hover:scale-105 transition duration-300"
+    className="group relative cursor-pointer overflow-hidden rounded-3xl border border-white/80 bg-slate-200 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
   >
     <img
       src={sample?.image}
@@ -925,10 +927,10 @@ return (
                       "/"
                     )
                   }
-                  className="mb-6 text-sm text-gray-600 hover:underline"
+                  className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-slate-900"
                 >
-                  ← Back to
-                  Categories
+                  <span aria-hidden="true">&larr;</span>
+                  Back to Categories
                 </button>
 
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -967,7 +969,7 @@ return (
                             .value
                         )
                       }
-                      className="mt-1 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm"
+                      className="mt-1 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800"
                     >
                       {SORT_OPTIONS.map(
                         (
@@ -1049,3 +1051,4 @@ return (
 }
 
 export default HomePage;
+
