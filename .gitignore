@@ -3,3 +3,6 @@ node_modules
 /dist
 /build
 /uploads
+frontend/dev-dist/
+dist/
+node_modules/

@@ -7,6 +7,7 @@ import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
 import ProductDetail from "./pages/ProductDetailStandard";
 import { getSettings } from "./services/settingsService";
+import logo from "./assets/logo.png";
 
 function App() {
   const navigate = useNavigate();
@@ -25,13 +26,34 @@ function App() {
     return stored ? JSON.parse(stored) : [];
   });
   const [settings, setSettings] = useState(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+const [showTimeout, setShowTimeout] = useState(false);
+const [serverError, setServerError] = useState(false);
 const phoneNumber = settings?.phone;
 
 useEffect(() => {
   getSettings()
     .then(setSettings)
-    .catch(console.error);
+    .catch((err) => {
+      console.error(err);
+      setServerError(true);
+    })
+    .finally(() => setLoadingSettings(false));
 }, []);
+
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    if (loadingSettings) {
+      setShowTimeout(true);
+    }
+  }, 15000);
+  
+
+  return () => clearTimeout(timer);
+}, [loadingSettings]);
+
+
 
   /* ---------------- LOCAL STORAGE ---------------- */
 
@@ -120,6 +142,78 @@ useEffect(() => {
     setCart([]);
   };
 
+
+  if (serverError) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-6 text-center">
+      <img
+        src={logo}
+        alt="HOMLY DEALS"
+        className="w-20 h-20 object-contain mb-4"
+      />
+
+      <h1 className="text-2xl font-bold">
+        Server Unavailable
+      </h1>
+
+      <p className="text-gray-500 mt-2">
+        Backend is sleeping or offline.
+      </p>
+
+      <button
+        onClick={() => window.location.reload()}
+        className="mt-5 bg-black text-white px-5 py-2 rounded-lg"
+      >
+        Retry
+      </button>
+    </div>
+  );
+}
+
+
+if (loadingSettings) {
+  return (
+    <div className="min-h-screen bg-gray-100 px-6 py-10">
+
+      {/* Logo + Spinner */}
+      <div className="flex flex-col items-center mb-10">
+
+<img
+  src={logo}
+  alt="HOMLY DEALS"
+  className="w-20 h-20 object-contain animate-pulse"
+/>
+
+  <h1 className="mt-4 text-2xl font-bold tracking-wide">
+    HOMLY DEALS
+  </h1>
+
+  <p className="text-gray-500 mt-2">
+    Loading premium furniture...
+  </p>
+
+</div>
+
+      {/* Skeleton Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {[1,2,3,4,5,6].map((item) => (
+          <div
+            key={item}
+            className="bg-white rounded-2xl p-4 shadow"
+          >
+            <div className="h-48 bg-gray-200 rounded-xl animate-pulse"></div>
+
+            <div className="h-5 bg-gray-200 rounded mt-4 animate-pulse"></div>
+
+            <div className="h-4 bg-gray-200 rounded mt-2 w-2/3 animate-pulse"></div>
+
+            <div className="h-10 bg-gray-200 rounded mt-4 animate-pulse"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
   /* ---------------- ROUTES ---------------- */
 
   return (
