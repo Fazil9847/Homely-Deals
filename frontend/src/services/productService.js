@@ -1,17 +1,15 @@
 import { API_URL } from "../config";
+import { authenticatedFetch } from "../utils/api";
 
 export const getProducts = async () => {
   const res = await fetch(`${API_URL}/api/products`);
   return res.json();
 };
 export const createProduct = async (productData) => {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${API_URL}/api/products`, {
+  const res = await authenticatedFetch('/api/products', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(productData),
   });
@@ -26,13 +24,8 @@ export const createProduct = async (productData) => {
 };
 
 export const deleteProduct = async (id) => {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${API_URL}/api/products/${id}`, {
+  const res = await authenticatedFetch(`/api/products/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
   if (!res.ok) {
   const data = await res.json();
@@ -43,13 +36,10 @@ export const deleteProduct = async (id) => {
 };
 
 export const updateProduct = async (id, data) => {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${API_URL}/api/products/${id}`, {
+  const res = await authenticatedFetch(`/api/products/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(data),
   });

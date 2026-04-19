@@ -66,6 +66,7 @@ function ProductCard({
   product,
   onDelete,
   onEdit,
+  isDeleting = false,
   isLoggedIn,
   phoneNumber,
   searchQuery = "",
@@ -293,16 +294,18 @@ function ProductCard({
           <div className="mt-3 flex justify-between text-sm">
             <button
               onClick={() => onEdit(product)}
-              className="text-blue-600 hover:underline"
+              disabled={isDeleting}
+              className="text-blue-600 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
               Edit
             </button>
 
             <button
               onClick={() => onDelete(product._id)}
-              className="text-red-500 hover:underline"
+              disabled={isDeleting}
+              className="text-red-500 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </button>
           </div>
         )}

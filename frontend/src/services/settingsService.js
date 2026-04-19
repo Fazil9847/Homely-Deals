@@ -1,4 +1,5 @@
 import { API_URL } from "../config";
+import { authenticatedFetch } from "../utils/api";
 
 export const getSettings = async () => {
   const res = await fetch(`${API_URL}/api/settings`);
@@ -6,13 +7,10 @@ export const getSettings = async () => {
 };
 
 export const updateSettings = async (data) => {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${API_URL}/api/settings`, {
+  const res = await authenticatedFetch('/api/settings', {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(data),
   });

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 
-function Login({ onLogin }) {
+function Login({ onLogin, onBack, isModal = false }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     username: "",
@@ -46,34 +46,44 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-10">
+    <div className={isModal ? "bg-gray-100 px-4 py-10" : "min-h-screen bg-gray-100 px-4 py-10"}>
       <div className="mx-auto max-w-md">
-        <button
-          type="button"
-          onClick={() => {
-            if (window.history.length > 1) {
-              navigate(-1);
-              return;
-            }
+        {!isModal && (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+                return;
+              }
 
-            navigate("/");
-          }}
-          className="mb-6 inline-flex items-center text-sm text-gray-600 transition hover:text-black"
-        >
-          Back to Home
-        </button>
+              navigate("/");
+            }}
+            className="mb-6 inline-flex items-center text-sm text-gray-600 transition hover:text-black"
+          >
+            Back to Home
+          </button>
+        )}
+        {isModal && onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-4 inline-flex items-center text-sm text-gray-600 transition hover:text-black"
+          >
+            Back
+          </button>
+        )}
 
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-100 px-6 py-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-              Owner Access
+              {isModal ? "Session Expired" : "Owner Access"}
             </p>
             <h1 className="mt-2 text-2xl font-semibold text-gray-900">
-              Sign in to manage your store
+              {isModal ? "Please sign in again" : "Sign in to manage your store"}
             </h1>
             <p className="mt-2 text-sm text-gray-500">
-              This area is only for the shop owner to manage products and
-              settings.
+              {isModal ? "Your session has expired. Please log in to continue." : "This area is only for the shop owner to manage products and settings."}
             </p>
           </div>
 

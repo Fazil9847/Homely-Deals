@@ -41,6 +41,7 @@ const SEARCH_OPTIONS = {
 function HomePage({
   isLoggedIn,
   setIsLoggedIn,
+  preserveAdminState = false,
   wishlist,
   toggleWishlist,
   cart,
@@ -60,6 +61,7 @@ function HomePage({
   const [categorySort, setCategorySort] = useState("featured");
   const [visibleSearchCount, setVisibleSearchCount] = useState(3);
   const [now, setNow] = useState(() => Date.now());
+  const [deletingProductId, setDeletingProductId] = useState(null);
 
   const adminSectionRef = useRef(null);
   const productsSectionRef = useRef(null);
@@ -318,6 +320,7 @@ function HomePage({
 
   const phoneNumber =
     settings?.phone;
+  const canManageAdmin = isLoggedIn || preserveAdminState;
 
   /* ---------------- DATA LOAD ---------------- */
 
@@ -400,6 +403,7 @@ function HomePage({
   const handleDelete =
     async (id) => {
       try {
+        setDeletingProductId(id);
         const res =
           await deleteProduct(
             id
@@ -423,6 +427,7 @@ function HomePage({
         }
       } catch (error) {
         console.error(error);
+        throw error;
       }
     };
 
@@ -451,6 +456,8 @@ function HomePage({
         );
       } catch (error) {
         console.error(error);
+      } finally {
+        setDeletingProductId(null);
       }
     };
 
@@ -632,7 +639,7 @@ function HomePage({
           }
           className="mb-6"
         >
-          {isLoggedIn && (
+          {canManageAdmin && (
             <SettingsForm
               onUpdate={
                 refreshSettings
@@ -640,7 +647,7 @@ function HomePage({
             />
           )}
 
-         {isLoggedIn && (
+         {canManageAdmin && (
   <div ref={addProductRef}>
     <AddProduct
       onProductAdded={handleNewProduct}
@@ -797,6 +804,9 @@ function HomePage({
                           }
                           onDelete={
                             handleDelete
+                          }
+                          isDeleting={
+                            deletingProductId === product._id
                           }
                           onEdit={
                             handleEditProduct
@@ -1007,6 +1017,9 @@ return (
                         }
                         onDelete={
                           handleDelete
+                        }
+                        isDeleting={
+                          deletingProductId === product._id
                         }
                         onEdit={
                           handleEditProduct

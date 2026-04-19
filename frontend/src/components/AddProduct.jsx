@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createProduct } from "../services/productService";
 import { normalizeWoodTypes, WOOD_TYPE_OPTIONS } from "../utils/productUtils";
 import { API_URL } from "../config";
+import { authenticatedFetch, SESSION_EXPIRED_MESSAGE } from "../utils/api";
+import useSessionInterruptionMessage from "../hooks/useSessionInterruptionMessage";
 
 const CATEGORY_OPTIONS = ["Chair", "Table", "Sofa", "Bed", "Other"];
 const AVAILABILITY_OPTIONS = [
@@ -54,10 +56,17 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
   const [previewIsWide, setPreviewIsWide] = useState(false);
   const [offerExpires, setOfferExpires] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const mainImageInputRef = useRef(null);
+const galleryInputRef = useRef(null);
+  const [removingMainImage, setRemovingMainImage] = useState(false);
+  const [removingGalleryIndex, setRemovingGalleryIndex] = useState(null);
+  
+  const { message: sessionMessage, clearMessage } =
+    useSessionInterruptionMessage();
+  const persistedImageUrlsRef = useRef(new Set());
 
   const finalCategory =
     form.category === "Other" ? customCategory : form.category;
-
   useEffect(() => {
     if (isOffer && form.price) {
       setOriginalPrice(form.price);
@@ -66,6 +75,7 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
 
   useEffect(() => {
     if (!editingProduct) {
+      persistedImageUrlsRef.current = new Set();
       return;
     }
 
@@ -110,6 +120,15 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
       setOfferText("");
       setOfferExpires("");
     }
+
+    persistedImageUrlsRef.current = new Set(
+      [
+        editingProduct.image,
+        ...(Array.isArray(editingProduct.galleryImages)
+          ? editingProduct.galleryImages
+          : []),
+      ].filter(Boolean),
+    );
   }, [editingProduct]);
 
   useEffect(() => {
@@ -158,16 +177,44 @@ function AddProduct({ onProductAdded, editingProduct, onUpdate }) {
     return selected;
   };
 
-  const resetForm = () => {
-    setForm(INITIAL_FORM);
-    setCustomCategory("");
-    setCustomWoodType("");
-    setIsOffer(false);
-    setOriginalPrice("");
-    setOfferPrice("");
-    setOfferText("");
-    setOfferExpires("");
+const resetForm = () => {
+  setForm(INITIAL_FORM);
+  setCustomCategory("");
+  setCustomWoodType("");
+  setIsOffer(false);
+  setOriginalPrice("");
+  setOfferPrice("");
+  setOfferText("");
+  setOfferExpires("");
+
+  if (mainImageInputRef.current) {
+    mainImageInputRef.current.value = "";
+  }
+
+  if (galleryInputRef.current) {
+    galleryInputRef.current.value = "";
+  }
+};
+
+  const isPersistedImage = (imageUrl) =>
+    persistedImageUrlsRef.current.has(imageUrl);
+
+  const deleteUploadedImage = async (imageUrl) => {
+    const res = await authenticatedFetch("/api/upload", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ imageUrl }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to remove image");
+    }
   };
+
 const handleSubmit = async (e) => {
   e.preventDefault();
 
@@ -178,8 +225,13 @@ const handleSubmit = async (e) => {
   try {
       const finalWoodTypes = getFinalWoodTypes();
 
-      if (!form.name || !form.price || !finalCategory) {
+      if (!form.name.trim() || form.price === "" || !finalCategory?.trim()) {
         alert("Please fill all required fields");
+        return;
+      }
+
+      if (!form.image) {
+        alert("Main photo is required");
         return;
       }
 
@@ -222,7 +274,9 @@ onProductAdded(data.product || data);
       resetForm();
     } catch (error) {
     console.error(error);
-    alert(error.message || "Failed to add product");
+    if (error.message !== SESSION_EXPIRED_MESSAGE) {
+      alert(error.message || "Failed to add product");
+    }
   } finally {
     setSubmitting(false);
   }
@@ -232,7 +286,20 @@ onProductAdded(data.product || data);
     const files = e.target.files;
 
     if (!files.length) return;
+const basicsReady =
+  form.name.trim() &&
+  Number(form.price) > 0 &&
+  finalCategory?.trim();
 
+if (!basicsReady || !form.image) {
+  alert("Please complete Product Name, Price, Category and Main Photo before uploading gallery images");
+
+  if (galleryInputRef.current) {
+    galleryInputRef.current.value = "";
+  }
+
+  return;
+}
     try {
       setUploading(true);
 
@@ -265,6 +332,20 @@ onProductAdded(data.product || data);
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+  const basicsReady =
+  form.name.trim() &&
+  Number(form.price) > 0 &&
+  finalCategory?.trim();
+
+if (!basicsReady) {
+  alert("Please enter Product Name, Price and Category before uploading main photo");
+
+  if (mainImageInputRef.current) {
+    mainImageInputRef.current.value = "";
+  }
+
+  return;
+}
 
     if (!file.type.startsWith("image/")) {
       alert("Please upload an image file");
@@ -284,6 +365,14 @@ onProductAdded(data.product || data);
 
       const data = await res.json();
 
+      if (form.image && !isPersistedImage(form.image)) {
+        try {
+          await deleteUploadedImage(form.image);
+        } catch (error) {
+          console.error("Failed to cleanup previous main image", error);
+        }
+      }
+
       setForm((prev) => ({
         ...prev,
         image: data.imageUrl,
@@ -295,11 +384,62 @@ onProductAdded(data.product || data);
     }
   };
 
-  const removeGalleryImage = (index) => {
-    setForm((prev) => ({
-      ...prev,
-      galleryImages: prev.galleryImages.filter((_, i) => i !== index),
-    }));
+  const removeMainImage = async () => {
+    if (!form.image || removingMainImage) {
+      return;
+    }
+
+    try {
+      setRemovingMainImage(true);
+
+      if (!isPersistedImage(form.image)) {
+        await deleteUploadedImage(form.image);
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        image: "",
+      }));
+    } catch (error) {
+      console.error(error);
+      if (error.message !== SESSION_EXPIRED_MESSAGE) {
+        alert(error.message || "Failed to remove image");
+      }
+    } finally {
+      setRemovingMainImage(false);
+    }
+  };
+
+  const removeGalleryImage = async (index) => {
+    if (removingGalleryIndex !== null) {
+      return;
+    }
+
+    const imageUrl = form.galleryImages[index];
+
+    if (!imageUrl) {
+      return;
+    }
+
+    try {
+      setRemovingGalleryIndex(index);
+
+      if (!isPersistedImage(imageUrl)) {
+        await deleteUploadedImage(imageUrl);
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        galleryImages: prev.galleryImages.filter((_, i) => i !== index),
+      }));
+    } catch (error) {
+      console.error(error);
+      if (error.message !== SESSION_EXPIRED_MESSAGE) {
+        alert(error.message || "Failed to remove gallery image");
+      }
+    } finally {
+      setRemovingGalleryIndex(null);
+    }
   };
 
   return (
@@ -307,6 +447,12 @@ onProductAdded(data.product || data);
       onSubmit={handleSubmit}
       className="mx-auto mb-8 max-w-4xl rounded-xl bg-white p-6 shadow-md"
     >
+      {sessionMessage && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {sessionMessage}
+        </div>
+      )}
+
       <div className="mb-6 border-b pb-4">
         <h2 className="text-xl font-semibold">
           {editingProduct ? "Edit Product" : "Add New Product"}
@@ -329,6 +475,8 @@ onProductAdded(data.product || data);
               placeholder="Product Name"
               value={form.name}
               onChange={handleChange}
+              onFocus={clearMessage}
+              required
               className="w-full rounded-lg border px-3 py-2"
             />
 
@@ -337,6 +485,8 @@ onProductAdded(data.product || data);
                 name="category"
                 value={form.category}
                 onChange={handleChange}
+                onFocus={clearMessage}
+                required
                 className="w-full rounded-lg border px-3 py-2"
               >
                 <option value="">Select Category</option>
@@ -352,6 +502,7 @@ onProductAdded(data.product || data);
                   placeholder="Enter new category"
                   value={customCategory}
                   onChange={(e) => setCustomCategory(e.target.value)}
+                  onFocus={clearMessage}
                   className="w-full rounded-lg border px-3 py-2"
                 />
               )}
@@ -382,6 +533,7 @@ onProductAdded(data.product || data);
                   placeholder="Enter other wood type"
                   value={customWoodType}
                   onChange={(e) => setCustomWoodType(e.target.value)}
+                  onFocus={clearMessage}
                   className="mt-3 w-full rounded-lg border px-3 py-2"
                 />
               )}
@@ -389,9 +541,13 @@ onProductAdded(data.product || data);
 
             <input
               name="price"
+              type="number"
+              min="0"
               placeholder="Price"
               value={form.price}
               onChange={handleChange}
+              onFocus={clearMessage}
+              required
               className="w-full rounded-lg border px-3 py-2"
             />
 
@@ -399,6 +555,7 @@ onProductAdded(data.product || data);
               name="availability"
               value={form.availability}
               onChange={handleChange}
+              onFocus={clearMessage}
               className="w-full rounded-lg border px-3 py-2"
             >
               {AVAILABILITY_OPTIONS.map((option) => (
@@ -414,6 +571,7 @@ onProductAdded(data.product || data);
             placeholder="Description"
             value={form.description}
             onChange={handleChange}
+            onFocus={clearMessage}
             rows={4}
             className="w-full rounded-lg border px-3 py-2"
           />
@@ -429,6 +587,7 @@ onProductAdded(data.product || data);
               name="label"
               value={form.label}
               onChange={handleChange}
+              onFocus={clearMessage}
               className="w-full rounded-lg border px-3 py-2"
             >
               <option value="">No Label</option>
@@ -441,6 +600,7 @@ onProductAdded(data.product || data);
               name="imagePosition"
               value={form.imagePosition}
               onChange={handleChange}
+              onFocus={clearMessage}
               className="w-full rounded-lg border px-3 py-2"
             >
               <option value="">No Image Focus</option>
@@ -461,9 +621,12 @@ onProductAdded(data.product || data);
                 Main Image
               </p>
               <input
-                type="file"
+  ref={mainImageInputRef}
+  type="file"
                 onChange={handleImageUpload}
-                disabled={submitting}
+                disabled={submitting || removingMainImage}
+                accept="image/*"
+                required={!editingProduct}
                 className="w-full text-sm"
               />
               {uploading && (
@@ -501,6 +664,14 @@ onProductAdded(data.product || data);
                     <p className="text-lg font-bold text-green-600">
                       {form.price ? `?${form.price}` : "?0"}
                     </p>
+                    <button
+                      type="button"
+                      onClick={removeMainImage}
+                      disabled={submitting || removingMainImage}
+                      className="mt-2 rounded border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {removingMainImage ? "Removing..." : "Remove Main Image"}
+                    </button>
                   </div>
                 </div>
               )}
@@ -510,11 +681,12 @@ onProductAdded(data.product || data);
               <p className="mb-2 text-sm font-medium text-gray-700">
                 Gallery Images
               </p>
-              <input
-                type="file"
-                multiple
+            <input
+  ref={galleryInputRef}
+  type="file"
+  multiple
                 onChange={handleGalleryUpload}
-                disabled={submitting}
+                disabled={submitting || removingGalleryIndex !== null}
                 className="w-full text-sm"
               />
 
@@ -531,10 +703,10 @@ onProductAdded(data.product || data);
                       <button
                         type="button"
                         onClick={() => removeGalleryImage(i)}
-                        disabled={submitting}
+                        disabled={submitting || removingGalleryIndex !== null}
                         className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
                       >
-                        x
+                        {removingGalleryIndex === i ? "..." : "x"}
                       </button>
                     </div>
                   ))}
@@ -562,6 +734,7 @@ onProductAdded(data.product || data);
                 className="w-full rounded-lg border px-3 py-2"
                 value={originalPrice}
                 onChange={(e) => setOriginalPrice(e.target.value)}
+                onFocus={clearMessage}
               />
 
               <input
@@ -570,6 +743,7 @@ onProductAdded(data.product || data);
                 className="w-full rounded-lg border px-3 py-2"
                 value={offerPrice}
                 onChange={(e) => setOfferPrice(e.target.value)}
+                onFocus={clearMessage}
               />
 
               <input
@@ -578,6 +752,7 @@ onProductAdded(data.product || data);
                 className="w-full rounded-lg border px-3 py-2"
                 value={offerText}
                 onChange={(e) => setOfferText(e.target.value)}
+                onFocus={clearMessage}
               />
 
               <div className="space-y-1">
@@ -588,6 +763,7 @@ onProductAdded(data.product || data);
                   type="datetime-local"
                   value={offerExpires}
                   onChange={(e) => setOfferExpires(e.target.value)}
+                  onFocus={clearMessage}
                   className="w-full rounded-lg border px-3 py-2"
                 />
                 <p className="text-xs text-gray-500">

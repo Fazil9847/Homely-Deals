@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { updateSettings, getSettings } from "../services/settingsService";
+import useSessionInterruptionMessage from "../hooks/useSessionInterruptionMessage";
 
 const emptyExtraLink = () => ({
   id: Date.now() + Math.random(),
@@ -20,6 +21,8 @@ function SettingsForm({ onUpdate }) {
     extraLinks: [emptyExtraLink()],
   });
   const [loading, setLoading] = useState(false);
+  const { message: sessionMessage, clearMessage } =
+    useSessionInterruptionMessage();
 
   useEffect(() => {
     const load = async () => {
@@ -57,10 +60,12 @@ function SettingsForm({ onUpdate }) {
   }, []);
 
   const handleChange = (e) => {
+    clearMessage();
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleExtraLinkChange = (index, field, value) => {
+    clearMessage();
     setForm((prev) => ({
       ...prev,
       extraLinks: prev.extraLinks.map((link, linkIndex) =>
@@ -111,6 +116,11 @@ await updateSettings({
   return (
     <form className="mb-6 rounded-2xl bg-white p-5 shadow" onSubmit={handleSubmit}>
       <h2 className="mb-4 text-lg font-semibold">Shop Settings</h2>
+      {sessionMessage && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {sessionMessage}
+        </div>
+      )}
 
       <input
         name="shopName"

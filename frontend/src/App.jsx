@@ -16,6 +16,22 @@ function App() {
     !!localStorage.getItem("token")
   );
 
+  const [showLogin, setShowLogin] = useState(false);
+  const [sessionInterrupted, setSessionInterrupted] = useState(false);
+
+  const logout = ({ preserveAdminState = false } = {}) => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    setShowLogin(true);
+    setSessionInterrupted(preserveAdminState);
+  };
+
+  useEffect(() => {
+    const handleTokenExpired = () => logout({ preserveAdminState: true });
+    window.addEventListener('tokenExpired', handleTokenExpired);
+    return () => window.removeEventListener('tokenExpired', handleTokenExpired);
+  }, []);
+
   const [wishlist, setWishlist] = useState(() => {
     const stored = localStorage.getItem("wishlist");
     return stored ? JSON.parse(stored) : [];
@@ -217,83 +233,117 @@ if (loadingSettings) {
   /* ---------------- ROUTES ---------------- */
 
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <HomePage
-            isLoggedIn={isLoggedIn}
-            setIsLoggedIn={setIsLoggedIn}
-            wishlist={wishlist}
-            toggleWishlist={toggleWishlist}
-            cart={cart}
-            addToCart={addToCart}
-          />
-        }
-      />
+    <>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <HomePage
+              isLoggedIn={isLoggedIn}
+              setIsLoggedIn={setIsLoggedIn}
+              preserveAdminState={sessionInterrupted}
+              wishlist={wishlist}
+              toggleWishlist={toggleWishlist}
+              cart={cart}
+              addToCart={addToCart}
+            />
+          }
+        />
 
-      <Route
-        path="/category/:categoryName"
-        element={
-          <HomePage
-            isLoggedIn={isLoggedIn}
-            setIsLoggedIn={setIsLoggedIn}
-            wishlist={wishlist}
-            toggleWishlist={toggleWishlist}
-            cart={cart}
-            addToCart={addToCart}
-          />
-        }
+        <Route
+          path="/category/:categoryName"
+          element={
+            <HomePage
+              isLoggedIn={isLoggedIn}
+              setIsLoggedIn={setIsLoggedIn}
+              preserveAdminState={sessionInterrupted}
+              wishlist={wishlist}
+              toggleWishlist={toggleWishlist}
+              cart={cart}
+              addToCart={addToCart}
+            />
+          }
+        />
+  <Route
+    path="/product/:id"
+    element={
+      <ProductDetail
+        wishlist={wishlist}
+        toggleWishlist={toggleWishlist}
+        cart={cart}
+        addToCart={addToCart}
       />
-<Route
-  path="/product/:id"
-  element={
-    <ProductDetail
-      wishlist={wishlist}
-      toggleWishlist={toggleWishlist}
-      cart={cart}
-      addToCart={addToCart}
-    />
-  }
-/>
-      <Route
-        path="/login"
-        element={
-          <Login
-            onLogin={() => {
-              setIsLoggedIn(true);
-              navigate("/");
-            }}
-          />
-        }
-      />
+    }
+  />
+        <Route
+          path="/login"
+          element={
+            <Login
+              onLogin={() => {
+                setIsLoggedIn(true);
+                navigate("/");
+              }}
+            />
+          }
+        />
 
-   <Route
-  path="/wishlist"
-  element={
-    <Wishlist
-      wishlist={wishlist}
-      toggleWishlist={toggleWishlist}
-      phoneNumber={phoneNumber}
-      addToCart={addToCart}
-      cart={cart}
-    />
-  }
-/>
-
-      <Route
-        path="/cart"
-        element={
-       <Cart
-  cart={cart}
-  updateQty={updateQty}
-  removeFromCart={removeFromCart}
-  clearCart={clearCart}
-  phoneNumber={phoneNumber}
-/>
-        }
+     <Route
+    path="/wishlist"
+    element={
+      <Wishlist
+        wishlist={wishlist}
+        toggleWishlist={toggleWishlist}
+        phoneNumber={phoneNumber}
+        addToCart={addToCart}
+        cart={cart}
       />
-    </Routes>
+    }
+  />
+
+        <Route
+          path="/cart"
+          element={
+         <Cart
+    cart={cart}
+    updateQty={updateQty}
+    removeFromCart={removeFromCart}
+    clearCart={clearCart}
+    phoneNumber={phoneNumber}
+  />
+          }
+        />
+      </Routes>
+
+      {showLogin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl shadow-lg max-w-md w-full mx-4 relative">
+            {!sessionInterrupted && (
+              <button
+                onClick={() => setShowLogin(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+            <Login
+              onLogin={() => {
+                setIsLoggedIn(true);
+                setShowLogin(false);
+                setSessionInterrupted(false);
+                window.dispatchEvent(new CustomEvent("sessionRestored"));
+              }}
+              onBack={() => {
+                setShowLogin(false);
+                setSessionInterrupted(false);
+              }}
+              isModal={true}
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
